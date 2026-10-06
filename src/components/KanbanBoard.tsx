@@ -261,7 +261,7 @@ export function KanbanBoard({
   ];
 
   return (
-    <div className="flex flex-col gap-5 w-full min-w-0">
+    <div id="tour-kanban" className="flex flex-col gap-5 w-full min-w-0">
       {/* Hero Now Playing / Up Next Banner */}
       <SteamLivePlayingBanner
         currentlyPlaying={currentlyPlaying}

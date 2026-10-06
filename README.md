@@ -11,8 +11,9 @@ GamePace is a modern web application built to help gamers track, manage, and pac
 - **🔄 Steam Integration:** Automatically sync your Steam games and playtime using your Steam ID or Custom URL (Vanity URL).
 - **⏱️ HowLongToBeat (HLTB) Integration:** Compare your playtime against average completion times (Main Story, Extras, Completionist) to gauge how much longer a game will take.
 - **🟢 Live Status:** See what game you are currently playing on Steam in real-time.
-- **📋 Kanban Board:** Organize your games into customizable columns (e.g., Backlog, Playing, Completed, Abandoned) using a drag-and-drop or click-based Kanban interface.
+- **📋 Kanban Board with Optimistic UI:** Organize your games into columns (Backlog, Playing, Completed) using drag-and-drop. Moves are instantly reflected in the UI for a seamless experience.
 - **⏱️ Pacing System:** Configure your gaming pace and set goals to tackle your backlog efficiently.
+- **🗺️ Interactive Onboarding Tour:** A guided step-by-step interactive tutorial (`react-joyride`) for first-time users, securely tracking completion via dual-layer storage (localStorage + Cookies).
 - **📊 Export Data:** Easily export your game list and progress to a CSV file for personal tracking.
 - **🎨 Modern UI:** A beautiful, responsive, and dark-themed user interface built with Tailwind CSS.
 
@@ -84,7 +85,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## 🔑 How to use
 
 1. Go to the web app.
-2. Enter your **Steam ID** (e.g., `76561198138879051`) or **Steam Vanity URL** in the search bar.
+2. Enter your **Steam ID** (e.g., `76561198000000000`) or **Steam Vanity URL** in the search bar.
 3. The app will fetch your Steam library and live status.
 4. Use the Kanban board to move games between columns to track your backlog progress.
 

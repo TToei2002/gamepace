@@ -181,13 +181,6 @@ export async function fetchSteamOwnedGames(steamId?: string): Promise<FetchOwned
         .sort((a: any, b: any) => (b.rtime_last_played || 0) - (a.rtime_last_played || 0))
         .slice(0, 5);
 
-      console.log('🎮 [Steam 5 เกมที่คุณเพิ่งเล่นล่าสุดจริงๆ]:', mostRecentlyPlayed.map((g: any) => ({
-        appid: g.appid,
-        name: g.name,
-        playtime_forever_hours: (g.playtime_forever / 60).toFixed(1) + ' ชม.',
-        rtime_last_played: g.rtime_last_played,
-        last_played: new Date(g.rtime_last_played * 1000).toLocaleString('th-TH'),
-      })));
 
       const liveGames: SteamGameItem[] = data.response.games
         .map((g: any) => ({

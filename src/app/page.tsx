@@ -92,28 +92,6 @@ export default function HomePage() {
           appId: data.summary.currentGameAppId,
           coverUrl,
         });
-
-        // 🎮 Print visible, well-structured log in browser DevTools Console
-        console.group('%c🎮 [Steam Live Status - ตรวจสอบสถานะผู้เล่น]', 'color: #38bdf8; font-weight: bold; font-size: 13px; padding: 2px 4px;');
-        console.log('%c👤 ชื่อผู้เล่น Steam:', 'color: #94a3b8; font-weight: bold;', data.summary.personaName);
-        console.log('%c🆔 SteamID:', 'color: #94a3b8; font-weight: bold;', data.summary.steamId);
-        console.log(
-          '%c🟢 สถานะออนไลน์ (Persona State):',
-          'color: #94a3b8; font-weight: bold;',
-          data.summary.personaState === 1 ? 'Online (ออนไลน์)' : data.summary.personaState === 0 ? 'Offline (ออฟไลน์)' : `State ${data.summary.personaState}`
-        );
-        if (data.summary.isPlaying) {
-          console.log(
-            '%c🔥 กำลังเล่นเกม (Currently Playing):',
-            'color: #4ade80; font-weight: bold; font-size: 13px;',
-            data.summary.currentGameTitle,
-            `(AppID: ${data.summary.currentGameAppId})`
-          );
-        } else {
-          console.log('%c💤 สถานะการเล่นเกม:', 'color: #cbd5e1; font-weight: bold;', 'ไม่ได้เปิดเกมบน Steam');
-        }
-        console.log('%c📦 ข้อมูลดิบจาก Steam API (Raw Data):', 'color: #a855f7;', data.summary.raw);
-        console.groupEnd();
       } else {
         setCurrentlyPlaying({
           isPlaying: false,
@@ -121,7 +99,6 @@ export default function HomePage() {
           appId: null,
           coverUrl: null,
         });
-        console.log('⚠️ [Steam Live Status]:', data.message || 'ไม่พบข้อมูลสถานะผู้เล่น');
       }
     } catch (err) {
       setCurrentlyPlaying({
@@ -130,7 +107,6 @@ export default function HomePage() {
         appId: null,
         coverUrl: null,
       });
-      console.warn('Failed to fetch Steam player live summary:', err);
     }
   };
 
@@ -188,7 +164,7 @@ export default function HomePage() {
     try {
       const activeSteamId = steamIdParam || localStorage.getItem('gamepace_active_steamId') || '';
       const url = activeSteamId ? `/api/user-games?steamId=${encodeURIComponent(activeSteamId)}` : '/api/user-games';
-      
+
       const res = await fetch(url);
       const data = await res.json();
       if (data.user) {
@@ -225,14 +201,6 @@ export default function HomePage() {
         setUserGames(data.userGames);
       }
 
-      // Log rtime_last_played info to browser console
-      if (data.steamDebugInfo) {
-        console.group('🎮 [Steam Sync] ข้อมูลชุด rtime_last_played จาก Steam:');
-        console.table(data.steamDebugInfo);
-        console.log('Raw Debug Details:', data.steamDebugInfo);
-        console.groupEnd();
-      }
-
       // Also refresh live player status & log to console
       fetchSteamLiveStatus(user?.steamId || undefined);
 
@@ -242,7 +210,6 @@ export default function HomePage() {
 
       showToast(logMsg);
     } catch (err) {
-      console.error('Steam sync error:', err);
       showToast('การซิงค์ข้อมูลขัดข้อง กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsSyncing(false);
@@ -253,7 +220,7 @@ export default function HomePage() {
     setToastMsg(msg);
     setToastTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     setIsToastVisible(true);
-    
+
     // Auto dismiss
     setTimeout(() => {
       setIsToastVisible(false);
@@ -498,11 +465,11 @@ export default function HomePage() {
       prev.map((g) =>
         g.id === id
           ? {
-              ...g,
-              currentPlayedMinutes: newMins,
-              status: newStatus,
-              syncHistories: [...(g.syncHistories || []), newSyncHistory],
-            }
+            ...g,
+            currentPlayedMinutes: newMins,
+            status: newStatus,
+            syncHistories: [...(g.syncHistories || []), newSyncHistory],
+          }
           : g
       )
     );
@@ -641,14 +608,14 @@ export default function HomePage() {
           fetch('/api/user-games', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              id: data.userGame.id, 
+            body: JSON.stringify({
+              id: data.userGame.id,
               status: syncStatus,
-              order: syncOrder 
+              order: syncOrder
             }),
           }).catch(console.error);
         }
-        
+
         if (data.message !== 'Game already in backlog') {
           showToast(`เพิ่ม "${steamGame.title}" เข้า Backlog เรียบร้อยแล้ว!`);
         }
@@ -812,10 +779,9 @@ export default function HomePage() {
         />
 
         {/* Sync Toast Notification (Discord System Notice style) */}
-        <div 
-          className={`fixed top-16 right-6 lg:right-10 z-50 transition-all duration-200 transform ${
-            isToastVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-[120%] opacity-0 scale-95'
-          }`}
+        <div
+          className={`fixed top-16 right-6 lg:right-10 z-50 transition-all duration-200 transform ${isToastVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-[120%] opacity-0 scale-95'
+            }`}
         >
           {toastMsg && (
             <div className="bg-[var(--gp-floating)] border border-[var(--gp-divider)] rounded-xl p-3.5 flex flex-col gap-2.5 min-w-[300px] max-w-sm shadow-2xl">
@@ -826,7 +792,7 @@ export default function HomePage() {
                   </div>
                   <span className="leading-snug">{toastMsg}</span>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsToastVisible(false)}
                   className="text-[var(--gp-text-muted)] hover:text-[var(--gp-text-strong)] transition-colors p-0.5"
                 >
@@ -835,8 +801,8 @@ export default function HomePage() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="w-full h-1 bg-[var(--gp-rail)] rounded-full overflow-hidden mr-2.5">
-                  <div 
-                    className="h-full bg-[var(--gp-brand)] rounded-full" 
+                  <div
+                    className="h-full bg-[var(--gp-brand)] rounded-full"
                     style={{ animation: 'progressExpand 4.5s linear forwards' }}
                   />
                 </div>
@@ -851,14 +817,12 @@ export default function HomePage() {
           {/* Tab Views */}
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
-              {/* Skeleton Loading State */}
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-[var(--gp-secondary)] border border-[var(--gp-divider)] rounded-xl h-[520px] animate-pulse" />
               ))}
             </div>
           ) : activeTab === 'kanban' ? (
-            <div id="tour-kanban" className="w-full h-full">
-              <KanbanBoard
+            <KanbanBoard
               userGames={userGames}
               currentlyPlaying={currentlyPlaying}
               weekdayHours={weekdayHours}
@@ -871,7 +835,6 @@ export default function HomePage() {
               onOpenSteamSearch={() => setIsSteamSearchOpen(true)}
               onAddLiveGameToEndless={handleAddLiveGameToEndless}
             />
-            </div>
           ) : (
             <AnalyticsDashboard
               userGames={userGames}
@@ -885,7 +848,7 @@ export default function HomePage() {
           {/* Discord-style Footer in Workspace */}
           <footer className="w-full border-t border-[var(--gp-divider)] pt-4 pb-2 text-center text-xs text-[var(--gp-text-muted)] mt-8">
             <div className="flex items-center justify-center gap-1.5 font-medium">
-              <span>GamePace © 2026 — Discord Pacing Engine</span>
+              <span>GamePace © 2026</span>
             </div>
           </footer>
         </main>
@@ -943,7 +906,7 @@ export default function HomePage() {
         onClose={() => setIsGamingWrappedOpen(false)}
       />
 
-      <OnboardingTutorialModal onComplete={() => {}} />
+      <OnboardingTutorialModal onComplete={() => { }} />
     </div>
   );
 }

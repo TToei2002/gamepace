@@ -30,15 +30,7 @@ export async function POST(req: Request) {
         for (const ug of userGames) {
           if (!ug.game.steamAppId) continue;
           const liveGame = liveOwned.games.find((g: any) => g.appId === ug.game.steamAppId);
-          if (liveGame) {
-            console.log(`⏱️ [Steam Sync Debug] ${ug.game.title} (AppID: ${ug.game.steamAppId}):`, {
-              dbMinutes: ug.currentPlayedMinutes,
-              steamMinutes: liveGame.playedMinutes,
-              rtimeLastPlayed: liveGame.rtimeLastPlayed,
-              actualPlayedDate: liveGame.rtimeLastPlayed ? new Date(liveGame.rtimeLastPlayed * 1000).toLocaleString('th-TH') : 'No timestamp',
-              willUpdate: liveGame.playedMinutes > ug.currentPlayedMinutes,
-            });
-          }
+
           if (liveGame && liveGame.playedMinutes > ug.currentPlayedMinutes) {
             const diff = liveGame.playedMinutes - ug.currentPlayedMinutes;
             await prisma.userGame.update({

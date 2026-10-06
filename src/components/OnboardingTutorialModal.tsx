@@ -5,7 +5,14 @@ import dynamic from 'next/dynamic';
 import { Gamepad2 } from 'lucide-react';
 
 // Joyride must be rendered only on client-side
-const Joyride = dynamic(() => import('react-joyride'), { ssr: false });
+const Joyride = dynamic(
+  async () => {
+    const mod = await import('react-joyride');
+    // Handle both default export and named export variations
+    return mod.default || (mod as any).Joyride || mod;
+  },
+  { ssr: false }
+) as any;
 
 interface OnboardingTutorialModalProps {
   onComplete: () => void;
@@ -15,22 +22,35 @@ export function OnboardingTutorialModal({ onComplete }: OnboardingTutorialModalP
   const [run, setRun] = useState(false);
 
   useEffect(() => {
-    // Check if the user has already seen the tutorial
-    const hasSeenTutorial = localStorage.getItem('gamepace_tour_completed');
-    if (!hasSeenTutorial) {
+    // Check if the user has already seen the tutorial (Fallback to cookie if localStorage fails)
+    const hasSeenTutorialLocal = localStorage.getItem('gamepace_tour_completed');
+    
+    if (!hasSeenTutorialLocal) {
       // Small delay to let the initial loading finish before popping up
-      const timer = setTimeout(() => setRun(true), 1500);
+      const timer = setTimeout(() => {
+        // บันทึกทันทีที่แสดงผลเลย จะได้ไม่โชว์อีกไม่ว่าจะปิดด้วยวิธีไหนหรือรีเฟรชหน้าเว็บ
+        localStorage.setItem('gamepace_tour_completed', 'true');
+        
+        setRun(true);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, []);
 
   const handleJoyrideCallback = (data: any) => {
-    const { status } = data;
-    const finishedStatuses = ['finished', 'skipped'];
+    const { status, action, type } = data;
 
-    if (finishedStatuses.includes(status)) {
-      setRun(false);
+    // ตรวจสอบทุกกรณีที่ทำให้ Tutorial จบ (กดปิด, ข้าม, ถึงหน้าสุดท้าย, หรือทัวร์จบเอง)
+    if (
+      status === 'finished' || 
+      status === 'skipped' || 
+      action === 'close' || 
+      action === 'skip' ||
+      action === 'last' ||
+      type === 'tour:end'
+    ) {
       localStorage.setItem('gamepace_tour_completed', 'true');
+      setRun(false);
       onComplete();
     }
   };
@@ -40,10 +60,10 @@ export function OnboardingTutorialModal({ onComplete }: OnboardingTutorialModalP
       target: 'body',
       content: (
         <div className="flex flex-col items-center text-center space-y-3">
-          <Gamepad2 className="w-12 h-12 text-[#6366f1] mb-2" />
-          <h2 className="text-xl font-bold">ยินดีต้อนรับสู่ GamePace!</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            แอปจัดระเบียบเกมดองและคำนวณระยะเวลาจบเกมอัจฉริยะ เดี๋ยวเรามาดูวิธีใช้งานง่ายๆ ไปพร้อมกันเลยครับ!
+          <Gamepad2 className="w-12 h-12 text-[var(--gp-brand)] mb-2" />
+          <h2 className="text-xl font-bold text-[var(--gp-text-strong)]">ยินดีต้อนรับสู่ GamePace!</h2>
+          <p className="text-sm text-[var(--gp-text-muted)]">
+            แอปจัดระเบียบเกมดองและคำนวณระยะเวลาจบเกม มาดูวิธีใช้งานง่ายๆ ไปพร้อมกันเลย!
           </p>
         </div>
       ),
@@ -67,15 +87,15 @@ export function OnboardingTutorialModal({ onComplete }: OnboardingTutorialModalP
     {
       target: '#tour-add-game',
       title: '3. เพิ่มเกมแบบ Manual',
-      content: 'หรือถ้าไม่ได้เล่นบน Steam ก็สามารถกดเพิ่มเกมและค้นหาเกมทั่วโลกเพื่อใส่กระดานได้จากที่นี่เลย',
+      content: 'เพิ่มเกมจากคลัง Steam ของคุณ',
       placement: 'bottom' as const,
       disableBeacon: true,
     },
     {
-      target: '#tour-kanban',
+      target: 'body',
       title: '4. ลากวางกระดาน Kanban',
-      content: 'ลากการ์ดเกมไปมาเพื่อจัดการสถานะ (Backlog -> Playing -> Completed) และติดตามสถิติได้แบบ Real-time! แค่นี้ก็พร้อมลุยแล้วครับ 🚀',
-      placement: 'top' as const,
+      content: 'ลากการ์ดเกมไปมาเพื่อจัดการสถานะ (Backlog -> Playing -> Completed) และติดตามสถิติได้แบบ Real-time! แค่นี้ก็พร้อมลุยแล้ว',
+      placement: 'center' as const,
       disableBeacon: true,
     }
   ];
@@ -89,14 +109,59 @@ export function OnboardingTutorialModal({ onComplete }: OnboardingTutorialModalP
       continuous={true}
       showProgress={true}
       showSkipButton={true}
+      disableOverlayClose={true}
       callback={handleJoyrideCallback}
+      floaterProps={{
+        hideArrow: true, // Hide arrow because var() CSS variables don't work well with react-joyride's internal arrow color parser
+      }}
       styles={{
         options: {
           primaryColor: '#6366f1',
           zIndex: 10000,
         },
+        tooltip: {
+          backgroundColor: 'var(--gp-floating)',
+          color: 'var(--gp-text-strong)',
+          borderRadius: '12px',
+          border: '1px solid var(--gp-divider)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+          fontFamily: 'inherit',
+          padding: '24px',
+        },
         tooltipContainer: {
           textAlign: 'left',
+        },
+        tooltipTitle: {
+          margin: 0,
+          fontSize: '15px',
+          fontWeight: 700,
+          color: 'var(--gp-text-strong)',
+        },
+        tooltipContent: {
+          padding: '12px 0',
+          fontSize: '13px',
+          color: 'var(--gp-text)',
+          lineHeight: '1.5',
+        },
+        buttonNext: {
+          backgroundColor: 'var(--gp-brand)',
+          color: 'white',
+          borderRadius: '6px',
+          padding: '8px 16px',
+          fontWeight: 600,
+          fontSize: '12px',
+          outline: 'none',
+        },
+        buttonBack: {
+          color: 'var(--gp-text-muted)',
+          marginRight: '12px',
+          fontSize: '12px',
+          fontWeight: 500,
+        },
+        buttonSkip: {
+          color: 'var(--gp-text-muted)',
+          fontSize: '12px',
+          fontWeight: 500,
         }
       }}
       locale={{
