@@ -561,7 +561,43 @@ export default function HomePage() {
 
   // Import Game from Steam Search Modal
   const handleImportGame = async (steamGame: SteamGameItem) => {
+    // 1. Optimistic UI: Close modal immediately
+    setIsSteamSearchOpen(false);
+
+    // 2. Create a temporary optimistic game object
+    const tempId = `temp-${Date.now()}`;
+    const optimisticGame: UserGameItem = {
+      id: tempId,
+      userId: user?.id || '',
+      gameId: `game-${steamGame.appId}`,
+      status: 'BACKLOG',
+      targetGoal: 'Main + Extra',
+      targetHours: 40, // Temporary default
+      currentPlayedMinutes: steamGame.playedMinutes,
+      order: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      game: {
+        id: `game-${steamGame.appId}`,
+        steamAppId: steamGame.appId,
+        title: steamGame.title,
+        coverUrl: steamGame.coverUrl || `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${steamGame.appId}/header.jpg`,
+        hltbMainStory: 0,
+        hltbExtra: 0,
+        hltbCompletionist: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+    };
+
+    // 3. Add to UI instantly
+    setUserGames((prev) => {
+      if (prev.some((g) => g.game.steamAppId === steamGame.appId)) return prev; // Already exists
+      return [optimisticGame, ...prev];
+    });
+
     try {
+      // 4. Perform actual API request in background
       const res = await fetch('/api/user-games', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -577,23 +613,21 @@ export default function HomePage() {
 
       const data = await res.json();
       if (data.userGame) {
-        setUserGames((prev) => {
-          if (prev.some((g) => g.id === data.userGame.id)) {
-            return prev;
-          }
-          return [data.userGame, ...prev];
-        });
-        showToast(
-          data.message === 'Game already in backlog'
-            ? `"${steamGame.title}" มีอยู่ในรายการ Backlog แล้ว`
-            : `เพิ่ม "${steamGame.title}" เข้า Backlog เรียบร้อยแล้ว!`
-        );
+        // Replace temp item with real data from database
+        setUserGames((prev) => prev.map((g) => g.id === tempId ? data.userGame : g));
+        
+        if (data.message !== 'Game already in backlog') {
+          showToast(`เพิ่ม "${steamGame.title}" เข้า Backlog เรียบร้อยแล้ว!`);
+        }
       } else if (data.error) {
+        // Rollback on error
+        setUserGames((prev) => prev.filter((g) => g.id !== tempId));
         showToast(`ไม่สามารถเพิ่มเกมได้: ${data.error}`);
       }
-      setIsSteamSearchOpen(false);
     } catch (err) {
       console.error('Failed to import game:', err);
+      // Rollback on error
+      setUserGames((prev) => prev.filter((g) => g.id !== tempId));
       showToast('เกิดข้อผิดพลาดในการเพิ่มเกม กรุณาลองใหม่อีกครั้ง');
     }
   };
