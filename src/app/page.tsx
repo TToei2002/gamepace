@@ -610,8 +610,43 @@ export default function HomePage() {
 
       const data = await res.json();
       if (data.userGame) {
-        // Replace temp item with real data from database
-        setUserGames((prev) => prev.map((g) => g.id === tempId ? data.userGame : g));
+        let needsSync = false;
+        let syncStatus = 'BACKLOG';
+        let syncOrder = 0;
+
+        // Replace temp item with real data from database but PRESERVE user modifications
+        setUserGames((prev) => {
+          const currentUIState = prev.find((g) => g.id === tempId);
+          if (!currentUIState) return prev;
+
+          if (currentUIState.status !== 'BACKLOG' || currentUIState.order !== 0) {
+            needsSync = true;
+            syncStatus = currentUIState.status;
+            syncOrder = currentUIState.order;
+          }
+
+          return prev.map((g) => g.id === tempId ? {
+            ...data.userGame,
+            status: currentUIState.status,
+            order: currentUIState.order,
+            targetGoal: currentUIState.targetGoal,
+            targetHours: currentUIState.targetHours !== 40 ? currentUIState.targetHours : data.userGame.targetHours,
+            currentPlayedMinutes: currentUIState.currentPlayedMinutes,
+          } : g);
+        });
+
+        // If user dragged the temp card before it was saved, sync its new position with the real ID
+        if (needsSync) {
+          fetch('/api/user-games', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              id: data.userGame.id, 
+              status: syncStatus,
+              order: syncOrder 
+            }),
+          }).catch(console.error);
+        }
         
         if (data.message !== 'Game already in backlog') {
           showToast(`เพิ่ม "${steamGame.title}" เข้า Backlog เรียบร้อยแล้ว!`);
