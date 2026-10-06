@@ -9,11 +9,21 @@ GamePace is a modern web application built to help gamers track, manage, and pac
 ## ✨ Features
 
 - **🔄 Steam Integration:** Automatically sync your Steam games and playtime using your Steam ID or Custom URL (Vanity URL).
+- **⏱️ HowLongToBeat (HLTB) Integration:** Compare your playtime against average completion times (Main Story, Extras, Completionist) to gauge how much longer a game will take.
 - **🟢 Live Status:** See what game you are currently playing on Steam in real-time.
 - **📋 Kanban Board:** Organize your games into customizable columns (e.g., Backlog, Playing, Completed, Abandoned) using a drag-and-drop or click-based Kanban interface.
 - **⏱️ Pacing System:** Configure your gaming pace and set goals to tackle your backlog efficiently.
 - **📊 Export Data:** Easily export your game list and progress to a CSV file for personal tracking.
 - **🎨 Modern UI:** A beautiful, responsive, and dark-themed user interface built with Tailwind CSS.
+
+---
+
+## 📸 Screenshots
+
+*(Replace these placeholders with actual screenshots of your app!)*
+
+![Dashboard/Kanban View](https://via.placeholder.com/800x450.png?text=Dashboard+Kanban+Screenshot)
+![User Pacing Settings](https://via.placeholder.com/800x450.png?text=User+Pacing+Screenshot)
 
 ---
 
