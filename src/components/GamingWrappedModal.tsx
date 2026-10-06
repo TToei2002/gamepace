@@ -320,7 +320,7 @@ export function GamingWrappedModal({
             <div className="space-y-2">
               <h4 className="text-xs font-semibold flex items-center gap-1.5 text-[var(--gp-text)]">
                 <Medal className="w-3.5 h-3.5 text-[var(--gp-text-muted)]" />
-                <span>อันดับ 2 และ 3 ของรอบนี้</span>
+                <span>{runnerUp2 && runnerUp3 ? 'อันดับ 2 และ 3 ของรอบนี้' : 'อันดับ 2 ของรอบนี้'}</span>
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
