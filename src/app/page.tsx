@@ -11,11 +11,12 @@ import { SteamSearchModal } from '@/components/SteamSearchModal';
 import { SteamConnectModal } from '@/components/SteamConnectModal';
 import { UserPacingModal } from '@/components/UserPacingModal';
 import { GamingWrappedModal } from '@/components/GamingWrappedModal';
+import { OnboardingTutorialModal } from '@/components/OnboardingTutorialModal';
 import { UserGameItem } from '@/components/GameCard';
 import { SteamGameItem } from '@/lib/steam';
 import { evaluateBurnoutRisk } from '@/lib/pacing';
 import { ThemeMode } from '@/lib/theme';
-import { CloudDownload, X, Heart } from 'lucide-react';
+import { CloudDownload, X, Heart, Info } from 'lucide-react';
 
 export default function HomePage() {
   const [user, setUser] = useState<{
@@ -939,6 +940,8 @@ export default function HomePage() {
         userName={user?.name || 'Gamer'}
         onClose={() => setIsGamingWrappedOpen(false)}
       />
+
+      <OnboardingTutorialModal onComplete={() => {}} />
     </div>
   );
 }
