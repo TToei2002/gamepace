@@ -84,6 +84,7 @@ export function Header({
 
         {/* Add Game Button */}
         <button
+          id="tour-add-game"
           type="button"
           onClick={onOpenSteamSearch}
           className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[var(--gp-brand)] hover:bg-[var(--gp-brand-hover)] text-white flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
@@ -106,6 +107,7 @@ export function Header({
 
         {/* Steam Account Indicator Pill */}
         <button
+          id="tour-steam-connect"
           type="button"
           onClick={onOpenSteamConnect}
           className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-[var(--gp-secondary)] hover:bg-[var(--gp-hover)] text-[var(--gp-text)] border border-[var(--gp-divider)] transition-all"

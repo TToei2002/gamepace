@@ -195,13 +195,15 @@ export function ServerRail({
         <div className="w-8 h-[2px] bg-[var(--gp-divider)] rounded-full my-1.5" />
 
         {/* Pacing Settings Button */}
-        <RailItem
-          tooltip="ตั้งค่าเวลาเล่น (Pacing Budget)"
-          isActive={false}
-          onClick={onOpenPacingModal}
-        >
-          <Sliders className="w-5 h-5" />
-        </RailItem>
+        <div id="tour-pacing">
+          <RailItem
+            tooltip="ตั้งค่าเวลาเล่น (Pacing Budget)"
+            isActive={false}
+            onClick={onOpenPacingModal}
+          >
+            <Sliders className="w-5 h-5" />
+          </RailItem>
+        </div>
 
 
       </div>

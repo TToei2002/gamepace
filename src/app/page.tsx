@@ -857,7 +857,8 @@ export default function HomePage() {
               ))}
             </div>
           ) : activeTab === 'kanban' ? (
-            <KanbanBoard
+            <div id="tour-kanban" className="w-full h-full">
+              <KanbanBoard
               userGames={userGames}
               currentlyPlaying={currentlyPlaying}
               weekdayHours={weekdayHours}
@@ -870,6 +871,7 @@ export default function HomePage() {
               onOpenSteamSearch={() => setIsSteamSearchOpen(true)}
               onAddLiveGameToEndless={handleAddLiveGameToEndless}
             />
+            </div>
           ) : (
             <AnalyticsDashboard
               userGames={userGames}
