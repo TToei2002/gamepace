@@ -1,0 +1,424 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   GamePace Design System — Discord-inspired
+   Two-tone surfaces · one accent · quiet borders · fast motion
+   ========================================================= */
+
+:root,
+[data-theme='dark-purple'] {
+  color-scheme: dark;
+
+  /* Surfaces (darkest → lightest) */
+  --gp-rail: #1e1f22;
+  --gp-floating: #111214;
+  --gp-secondary: #2b2d31;
+  --gp-secondary-alt: #232428;
+  --gp-primary: #313338;
+  --gp-elevated: #383a40;
+  --gp-input: #1e1f22;
+
+  /* Interaction overlays */
+  --gp-hover: rgba(78, 80, 88, 0.3);
+  --gp-active: rgba(78, 80, 88, 0.48);
+  --gp-selected: rgba(78, 80, 88, 0.6);
+  --gp-divider: rgba(255, 255, 255, 0.06);
+  --gp-border: rgba(255, 255, 255, 0.06);
+  --gp-border-subtle: rgba(255, 255, 255, 0.06);
+  --gp-border-strong: rgba(255, 255, 255, 0.1);
+
+  /* Text */
+  --gp-text-strong: #f2f3f5;
+  --gp-text: #dbdee1;
+  --gp-text-muted: #949ba4;
+  --gp-text-faint: #6d6f78;
+  --gp-interactive: #b5bac1;
+
+  /* Accent + semantic */
+  --gp-brand: #5865f2;
+  --gp-brand-light: #808df8;
+  --gp-brand-hover: #4752c4;
+  --gp-brand-soft: rgba(88, 101, 242, 0.16);
+  --gp-green: #23a55a;
+  --gp-green-soft: rgba(35, 165, 90, 0.16);
+  --gp-yellow: #f0b232;
+  --gp-yellow-soft: rgba(240, 178, 50, 0.16);
+  --gp-red: #f23f43;
+  --gp-red-soft: rgba(242, 63, 67, 0.16);
+  --gp-fuchsia: #eb459e;
+
+  --gp-btn-secondary: #4e5058;
+  --gp-btn-secondary-hover: #6d6f78;
+
+  --gp-shadow-low: 0 1px 0 rgba(4, 4, 5, 0.2), 0 1.5px 0 rgba(6, 6, 7, 0.05), 0 2px 0 rgba(4, 4, 5, 0.05);
+  --gp-shadow-high: 0 8px 16px rgba(0, 0, 0, 0.24);
+  --gp-shadow-modal: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='light-blue'] {
+  color-scheme: light;
+
+  --gp-rail: #e3e5e8;
+  --gp-floating: #ffffff;
+  --gp-secondary: #f2f3f5;
+  --gp-secondary-alt: #ebedef;
+  --gp-primary: #ffffff;
+  --gp-elevated: #f8f9fa;
+  --gp-input: #ebedef;
+
+  --gp-hover: rgba(116, 127, 141, 0.12);
+  --gp-active: rgba(116, 127, 141, 0.2);
+  --gp-selected: rgba(116, 127, 141, 0.26);
+  --gp-divider: rgba(6, 6, 7, 0.08);
+  --gp-border: rgba(6, 6, 7, 0.08);
+  --gp-border-subtle: rgba(6, 6, 7, 0.08);
+  --gp-border-strong: rgba(6, 6, 7, 0.14);
+
+  --gp-text-strong: #060607;
+  --gp-text: #313338;
+  --gp-text-muted: #5c5e66;
+  --gp-text-faint: #80848e;
+  --gp-interactive: #4e5058;
+
+  --gp-brand: #5865f2;
+  --gp-brand-light: #4752c4;
+  --gp-brand-hover: #4752c4;
+  --gp-brand-soft: rgba(88, 101, 242, 0.12);
+  --gp-green: #1a8b4a;
+  --gp-green-soft: rgba(35, 165, 90, 0.12);
+  --gp-yellow: #b57d0b;
+  --gp-yellow-soft: rgba(240, 178, 50, 0.16);
+  --gp-red: #da373c;
+  --gp-red-soft: rgba(242, 63, 67, 0.12);
+  --gp-fuchsia: #c93583;
+
+  --gp-btn-secondary: #6d6f78;
+  --gp-btn-secondary-hover: #4e5058;
+
+  --gp-shadow-low: 0 1px 0 rgba(6, 6, 7, 0.08);
+  --gp-shadow-high: 0 8px 16px rgba(6, 6, 7, 0.08);
+  --gp-shadow-modal: 0 0 0 1px rgba(6, 6, 7, 0.08), 0 16px 48px rgba(6, 6, 7, 0.16);
+}
+
+/* ---------------------------------------------------------
+   Legacy token bridge — keeps not-yet-migrated components
+   consistent with the new palette.
+   --------------------------------------------------------- */
+:root,
+[data-theme='dark-purple'],
+[data-theme='light-blue'] {
+  --theme-bg: var(--gp-primary);
+  --theme-surface: var(--gp-secondary);
+  --theme-surface-translucent: var(--gp-secondary);
+  --theme-card: var(--gp-primary);
+  --theme-card-hover: var(--gp-elevated);
+  --theme-border: var(--gp-divider);
+  --theme-border-glow: var(--gp-border-strong);
+  --theme-text: var(--gp-text-strong);
+  --theme-subtext: var(--gp-text);
+  --theme-muted: var(--gp-text-muted);
+  --theme-primary: var(--gp-brand);
+  --theme-accent: var(--gp-brand);
+  --theme-glow: transparent;
+  --theme-gradient: none;
+
+  --theme-stat-bg: var(--gp-secondary-alt);
+  --theme-chip-bg: var(--gp-hover);
+  --theme-chip-border: transparent;
+  --theme-chip-text: var(--gp-text);
+  --theme-progress-track: var(--gp-active);
+  --theme-progress-border: transparent;
+  --theme-hover-bg: var(--gp-hover);
+  --theme-card-shadow: var(--gp-shadow-low);
+
+  --theme-amber-bg: var(--gp-yellow-soft);
+  --theme-amber-border: transparent;
+  --theme-amber-text: var(--gp-yellow);
+  --theme-emerald-bg: var(--gp-green-soft);
+  --theme-emerald-border: transparent;
+  --theme-emerald-text: var(--gp-green);
+  --theme-rose-bg: var(--gp-red-soft);
+  --theme-rose-border: transparent;
+  --theme-rose-text: var(--gp-red);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.9, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 280ms;
+}
+
+/* ---------------------------------------------------------
+   Base
+   --------------------------------------------------------- */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  background-color: var(--gp-primary);
+  color: var(--gp-text);
+  font-family: 'Inter', 'Noto Sans Thai', system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: background-color var(--dur-slow) var(--ease-out), color var(--dur-slow) var(--ease-out);
+}
+
+::selection {
+  background: var(--gp-brand);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gp-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Thin Discord-style scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gp-rail) transparent;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--gp-rail);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--gp-btn-secondary); }
+
+/* ---------------------------------------------------------
+   Components
+   --------------------------------------------------------- */
+@layer components {
+  /* Category label — like Discord's "TEXT CHANNELS" */
+  .gp-label {
+    @apply text-[11px] font-bold uppercase tracking-[0.02em];
+    color: var(--gp-text-muted);
+  }
+
+  .gp-btn {
+    @apply inline-flex items-center justify-center gap-2 h-8 px-4 rounded-[4px] text-[13px] font-medium select-none whitespace-nowrap;
+    transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out), color var(--dur-fast);
+  }
+  .gp-btn:active:not(:disabled) { transform: scale(0.97); }
+  .gp-btn:disabled { @apply opacity-50 cursor-not-allowed; }
+
+  .gp-btn-brand { background: var(--gp-brand); color: #fff; }
+  .gp-btn-brand:hover:not(:disabled) { background: var(--gp-brand-hover); }
+
+  .gp-btn-secondary { background: var(--gp-btn-secondary); color: #fff; }
+  .gp-btn-secondary:hover:not(:disabled) { background: var(--gp-btn-secondary-hover); }
+
+  .gp-btn-ghost { color: var(--gp-interactive); }
+  .gp-btn-ghost:hover:not(:disabled) { background: var(--gp-hover); color: var(--gp-text-strong); }
+
+  .gp-icon-btn {
+    @apply inline-flex items-center justify-center w-8 h-8 rounded-[4px];
+    color: var(--gp-interactive);
+    transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast);
+  }
+  .gp-icon-btn:hover { background: var(--gp-hover); color: var(--gp-text-strong); }
+
+  .gp-pill {
+    @apply inline-flex items-center gap-1 h-[18px] px-1.5 rounded-[4px] text-[11px] font-semibold leading-none;
+  }
+
+  .gp-surface {
+    background: var(--gp-secondary);
+    border-radius: 8px;
+  }
+
+  .gp-card {
+    background: var(--gp-primary);
+    border-radius: 8px;
+    box-shadow: var(--gp-shadow-low);
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out),
+      opacity var(--dur-base) var(--ease-out);
+  }
+  .gp-card:hover {
+    background: var(--gp-elevated);
+    box-shadow: var(--gp-shadow-high);
+    transform: translateY(-1px);
+  }
+  .gp-card:active { transform: translateY(0) scale(0.995); }
+
+  .gp-track {
+    @apply relative w-full h-1 rounded-full overflow-hidden;
+    background: var(--gp-active);
+  }
+  .gp-track > span {
+    @apply absolute inset-y-0 left-0 rounded-full;
+    transition: width 600ms var(--ease-out);
+  }
+
+  .gp-tooltip {
+    @apply pointer-events-none absolute left-full ml-4 px-3 py-2 rounded-[6px] text-[13px] font-semibold whitespace-nowrap z-50;
+    background: var(--gp-floating);
+    color: var(--gp-text-strong);
+    box-shadow: var(--gp-shadow-high);
+    opacity: 0;
+    transform: translateX(-4px) scale(0.96);
+    transform-origin: left center;
+    transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .gp-tooltip::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background: inherit;
+    transform: translateY(-50%) rotate(45deg);
+    border-radius: 1px;
+  }
+  .group:hover > .gp-tooltip {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* ---------------------------------------------------------
+   Legacy class bridge (glass/gradient → flat Discord style)
+   --------------------------------------------------------- */
+.glass-panel {
+  background-color: var(--gp-secondary);
+  border: 1px solid var(--gp-divider);
+  box-shadow: var(--gp-shadow-modal);
+}
+.glass-card {
+  background-color: var(--gp-primary);
+  border: 1px solid transparent;
+  box-shadow: var(--gp-shadow-low);
+  transition: background-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+.glass-card:hover {
+  background-color: var(--gp-elevated);
+  box-shadow: var(--gp-shadow-high);
+}
+.gradient-text {
+  background: none;
+  color: var(--gp-text-strong);
+  -webkit-text-fill-color: currentColor;
+}
+
+/* ---------------------------------------------------------
+   Endless progress — Discord Nitro-style animated flow
+   --------------------------------------------------------- */
+@keyframes endlessFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+@keyframes endlessGlowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(88, 101, 242, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(235, 69, 158, 0.6));
+  }
+}
+.endless-bar-glow {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    var(--gp-brand) 0%,
+    #8b5cf6 25%,
+    var(--gp-fuchsia) 50%,
+    #8b5cf6 75%,
+    var(--gp-brand) 100%
+  );
+  background-size: 200% 100%;
+  animation: endlessFlow 2.8s linear infinite, endlessGlowPulse 2.4s ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------
+   Keyframes & motion utilities
+   --------------------------------------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes progressExpand {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-fadeIn { animation: fadeIn var(--dur-slow) var(--ease-out) both; }
+.animate-slideUp { animation: slideUp 360ms var(--ease-out) both; }
+.animate-slideInRight { animation: fadeIn var(--dur-slow) var(--ease-out) both; }
+.animate-scaleIn { animation: scaleIn 240ms var(--ease-spring) both; }
+.animate-toastIn { animation: toastIn 260ms var(--ease-spring) both; }
+
+.shimmer-effect {
+  background: linear-gradient(90deg, var(--gp-secondary) 0px, var(--gp-elevated) 80px, var(--gp-secondary) 160px);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.stagger-1 { animation-delay: 30ms; }
+.stagger-2 { animation-delay: 60ms; }
+.stagger-3 { animation-delay: 90ms; }
+.stagger-4 { animation-delay: 120ms; }
+.stagger-5 { animation-delay: 150ms; }
+
+/* Modal backdrops used by legacy modals */
+.fixed.inset-0.backdrop-blur-md {
+  backdrop-filter: none;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  animation: backdropIn var(--dur-base) var(--ease-out) both;
+}
+
+input[type='range'] { accent-color: var(--gp-brand); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

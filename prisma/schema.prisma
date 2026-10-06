@@ -1,0 +1,63 @@
+// Prisma Schema for GamePace: Steam Backlog & Pacing Engine
+// Using SQLite provider for zero-configuration local execution, 100% compatible with PostgreSQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String     @id @default(uuid())
+  steamId         String?    @unique
+  name            String     @default("Steam Gamer")
+  avatar          String?
+  weekdayCapHours Float      @default(2.0)
+  weekendCapHours Float      @default(5.5)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  userGames       UserGame[]
+}
+
+model Game {
+  id                String     @id @default(uuid())
+  steamAppId        Int?       @unique
+  title             String
+  coverUrl          String?
+  hltbMainStory     Float      @default(0)
+  hltbExtra         Float      @default(0)
+  hltbCompletionist Float      @default(0)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  userGames         UserGame[]
+}
+
+model UserGame {
+  id                   String        @id @default(uuid())
+  userId               String
+  gameId               String
+  status               String        @default("BACKLOG") // BACKLOG, PLAYING, COMPLETED, DROPPED
+  targetGoal           String        @default("MAIN_STORY") // MAIN_STORY, EXTRA, COMPLETIONIST
+  targetHours          Float         @default(0)
+  currentPlayedMinutes Int           @default(0)
+  order                Int           @default(0)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game                 Game          @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  syncHistories        SyncHistory[]
+
+  @@index([userId, status])
+}
+
+model SyncHistory {
+  id              String   @id @default(uuid())
+  userGameId      String
+  previousMinutes Int
+  newMinutes      Int
+  syncedAt        DateTime @default(now())
+  userGame        UserGame @relation(fields: [userGameId], references: [id], onDelete: Cascade)
+}
