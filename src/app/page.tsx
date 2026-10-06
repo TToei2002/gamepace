@@ -576,7 +576,6 @@ export default function HomePage() {
       currentPlayedMinutes: steamGame.playedMinutes,
       order: 0,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
       game: {
         id: `game-${steamGame.appId}`,
         steamAppId: steamGame.appId,
@@ -585,8 +584,6 @@ export default function HomePage() {
         hltbMainStory: 0,
         hltbExtra: 0,
         hltbCompletionist: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
       }
     };
 
