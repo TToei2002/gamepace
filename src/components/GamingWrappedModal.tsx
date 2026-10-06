@@ -53,7 +53,16 @@ export function GamingWrappedModal({
     if (game.syncHistories && game.syncHistories.length > 0) {
       for (const sh of game.syncHistories) {
         const syncTime = new Date(sh.syncedAt).getTime();
-        const diff = Math.max(0, sh.newMinutes - sh.previousMinutes);
+        let diff = Math.max(0, sh.newMinutes - sh.previousMinutes);
+
+        // --- BUG FIX: Initial Sync Anomaly Guard ---
+        // If the database was recently wiped/created and it synced hundreds of hours at once,
+        // it ruins the monthly stats. If a game jumps from 0 to > 100 hours in a single sync,
+        // it's an initial library import, not actual playtime for this month.
+        if (sh.previousMinutes === 0 && diff > 100 * 60) {
+          diff = 0; 
+        }
+
         if (syncTime >= startOfMonth) {
           monthMinutes += diff;
         }
@@ -80,23 +89,23 @@ export function GamingWrappedModal({
   );
   const totalPeriodHours = Number((totalPeriodMinutes / 60).toFixed(1));
 
-  // Sort by period playtime to find Top 1, 2, 3 games (fallback to totalPlayedMinutes if period delta is 0)
-  const sortedGames = [...gamesWithDeltas].sort((a, b) => {
-    const deltaDiff = isMonthly
-      ? b.monthMinutes - a.monthMinutes
-      : b.yearMinutes - a.yearMinutes;
-    if (deltaDiff !== 0) return deltaDiff;
-    return b.currentPlayedMinutes - a.currentPlayedMinutes;
-  });
+  // Sort by period playtime to find Top 1, 2, 3 games
+  // BUG FIX: Filter out games that have 0 playtime in this period so they don't pollute the podium
+  const sortedGames = [...gamesWithDeltas]
+    .filter((g) => (isMonthly ? g.monthMinutes > 0 : g.yearMinutes > 0))
+    .sort((a, b) => {
+      return isMonthly
+        ? b.monthMinutes - a.monthMinutes
+        : b.yearMinutes - a.yearMinutes;
+    });
 
-  const topGame = sortedGames[0] && sortedGames[0].currentPlayedMinutes > 0 ? sortedGames[0] : null;
-  const runnerUp2 = sortedGames[1] && sortedGames[1].currentPlayedMinutes > 0 ? sortedGames[1] : null;
-  const runnerUp3 = sortedGames[2] && sortedGames[2].currentPlayedMinutes > 0 ? sortedGames[2] : null;
+  const topGame = sortedGames[0] || null;
+  const runnerUp2 = sortedGames[1] || null;
+  const runnerUp3 = sortedGames[2] || null;
 
   const getGamePeriodHours = (g: typeof sortedGames[0] | null) => {
     if (!g) return 0;
-    const periodHrs = isMonthly ? g.monthHours : g.yearHours;
-    return periodHrs > 0 ? periodHrs : Number((g.currentPlayedMinutes / 60).toFixed(1));
+    return isMonthly ? g.monthHours : g.yearHours;
   };
 
   const topGameHours = getGamePeriodHours(topGame);
