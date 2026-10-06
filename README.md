@@ -2,7 +2,7 @@
 
 GamePace is a modern web application built to help gamers track, manage, and pace their gaming backlog. By integrating seamlessly with the Steam API, GamePace allows users to sync their Steam library, view their live playing status, and organize their games using an intuitive Kanban board interface.
 
-**Live Demo:** [https://game-management-three.vercel.app/](https://game-management-three.vercel.app/)
+**Live Demo:** [https://gamepace.vercel.app/](https://gamepace.vercel.app/)
 
 ---
 
