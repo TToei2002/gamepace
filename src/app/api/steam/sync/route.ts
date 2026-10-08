@@ -31,6 +31,15 @@ export async function POST(req: Request) {
           if (!ug.game.steamAppId) continue;
           const liveGame = liveOwned.games.find((g: any) => g.appId === ug.game.steamAppId);
 
+          if (!liveGame) {
+            // ไม่พบเกมในคลัง Steam แล้ว (เช่น ถูก Refund หรือลบออกจากบัญชี)
+            await prisma.userGame.delete({
+              where: { id: ug.id },
+            });
+            syncLogs.push(`นำ ${ug.game.title} ออกจากระบบแล้ว (ไม่พบในคลัง Steam หรือถูก Refund)`);
+            continue;
+          }
+
           if (liveGame && liveGame.playedMinutes > ug.currentPlayedMinutes) {
             const diff = liveGame.playedMinutes - ug.currentPlayedMinutes;
             await prisma.userGame.update({
@@ -74,7 +83,7 @@ export async function POST(req: Request) {
       orderBy: [{ status: 'asc' }, { order: 'asc' }],
     });
 
-    const steamDebugInfo = userGames.map((ug) => {
+    const steamDebugInfo = updatedUserGames.map((ug) => {
       const liveGame = (liveOwned as any)?.games?.find((g: any) => g.appId === ug.game.steamAppId);
       return {
         gameTitle: ug.game.title,

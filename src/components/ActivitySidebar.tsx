@@ -88,12 +88,15 @@ export function ActivitySidebar({
   // Weekly & Daily Playtime Calculation (Gaming Wrapped Methodology)
   // -------------------------------------------------------------
   const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
   const endOfToday = startOfToday + 24 * 60 * 60 * 1000;
+  const startOfYesterday = startOfToday - 24 * 60 * 60 * 1000;
+  const endOfYesterday = startOfToday;
 
   // Monday 00:00:00 of the current week (ISO: Mon = 0 ... Sun = 6)
   const currentDayOfWeek = (now.getDay() + 6) % 7;
-  const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - currentDayOfWeek).getTime();
+  const yesterdayDayOfWeek = (currentDayOfWeek + 6) % 7;
+  const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - currentDayOfWeek, 0, 0, 0, 0).getTime();
   const endOfWeek = startOfWeek + 7 * 24 * 60 * 60 * 1000;
 
   const dayNames = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'];
@@ -102,11 +105,13 @@ export function ActivitySidebar({
   const {
     totalWeekMinutes,
     totalTodayMinutes,
+    totalYesterdayMinutes,
     dayMinutesMap,
     gamesWithWeekDeltas,
   } = React.useMemo(() => {
     let weekMins = 0;
     let todayMins = 0;
+    let yesterdayMins = 0;
     const dailyMins = [0, 0, 0, 0, 0, 0, 0];
 
     const withDeltas = userGames.map((game) => {
@@ -115,7 +120,8 @@ export function ActivitySidebar({
 
       if (game.syncHistories && game.syncHistories.length > 0) {
         for (const sh of game.syncHistories) {
-          const syncTime = new Date(sh.syncedAt).getTime();
+          const syncDate = new Date(sh.syncedAt);
+          const syncTime = syncDate.getTime();
           const diff = Math.max(0, sh.newMinutes - sh.previousMinutes);
 
           // Check if this sync happened during this week
@@ -123,8 +129,8 @@ export function ActivitySidebar({
             gWeekMinutes += diff;
             weekMins += diff;
 
-            // Determine which day of the week this sync occurred on (0 = Mon ... 6 = Sun)
-            const syncDayIdx = Math.floor((syncTime - startOfWeek) / (24 * 60 * 60 * 1000));
+            // Determine which day of the week this sync occurred on (0 = Mon ... 6 = Sun) using user's local timezone
+            const syncDayIdx = (syncDate.getDay() + 6) % 7;
             if (syncDayIdx >= 0 && syncDayIdx < 7) {
               dailyMins[syncDayIdx] += diff;
             }
@@ -134,6 +140,11 @@ export function ActivitySidebar({
           if (syncTime >= startOfToday && syncTime < endOfToday) {
             gTodayMinutes += diff;
             todayMins += diff;
+          }
+
+          // Check if this sync happened yesterday
+          if (syncTime >= startOfYesterday && syncTime < endOfYesterday) {
+            yesterdayMins += diff;
           }
         }
       }
@@ -150,13 +161,15 @@ export function ActivitySidebar({
     return {
       totalWeekMinutes: weekMins,
       totalTodayMinutes: todayMins,
+      totalYesterdayMinutes: yesterdayMins,
       dayMinutesMap: dailyMins,
       gamesWithWeekDeltas: withDeltas,
     };
-  }, [userGames, startOfWeek, endOfWeek, startOfToday, endOfToday]);
+  }, [userGames, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfYesterday, endOfYesterday]);
 
   const totalWeekHours = Number((totalWeekMinutes / 60).toFixed(1));
   const totalTodayHours = Number((totalTodayMinutes / 60).toFixed(1));
+  const totalYesterdayHours = Number((totalYesterdayMinutes / 60).toFixed(1));
 
   // 7-Day bar data based on actual recorded playtime
   const weekDaysData = React.useMemo(() => {
@@ -166,11 +179,12 @@ export function ActivitySidebar({
         label,
         hours,
         isToday: idx === currentDayOfWeek,
+        isYesterday: idx === yesterdayDayOfWeek,
         isPast: idx < currentDayOfWeek,
         isFuture: idx > currentDayOfWeek,
       };
     });
-  }, [dayMinutesMap, currentDayOfWeek]);
+  }, [dayMinutesMap, currentDayOfWeek, yesterdayDayOfWeek]);
 
   const maxDailyVal = Math.max(
     dailyHours * 1.3,
@@ -272,18 +286,24 @@ export function ActivitySidebar({
               </span>
             </div>
 
-            {/* Quick Today vs This Week Breakdown */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Quick Yesterday vs Today vs This Week Breakdown */}
+            <div className="grid grid-cols-3 gap-1.5">
               <div className="p-2 rounded-lg bg-[var(--gp-rail)]/80 border border-[var(--gp-divider)]">
-                <span className="text-[10px] text-[var(--gp-text-muted)] block">วันนี้</span>
+                <span className="text-[9.5px] text-[var(--gp-text-muted)] block truncate">เมื่อวาน</span>
                 <span className="text-xs font-bold font-mono text-[var(--gp-text-strong)]">
-                  {totalTodayHours} <span className="text-[10px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
+                  {totalYesterdayHours} <span className="text-[9px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
+                </span>
+              </div>
+              <div className="p-2 rounded-lg bg-[var(--gp-brand)]/10 border border-[var(--gp-brand)]/40 shadow-xs">
+                <span className="text-[9.5px] text-[var(--gp-brand-light)] font-bold block truncate">วันนี้</span>
+                <span className="text-xs font-bold font-mono text-[var(--gp-brand-light)]">
+                  {totalTodayHours} <span className="text-[9px] font-normal text-[var(--gp-brand-light)]/80">ชม.</span>
                 </span>
               </div>
               <div className="p-2 rounded-lg bg-[var(--gp-rail)]/80 border border-[var(--gp-divider)]">
-                <span className="text-[10px] text-[var(--gp-text-muted)] block">สัปดาห์นี้</span>
-                <span className="text-xs font-bold font-mono text-[var(--gp-brand-light)]">
-                  {totalWeekHours} <span className="text-[10px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
+                <span className="text-[9.5px] text-[var(--gp-text-muted)] block truncate">สัปดาห์นี้</span>
+                <span className="text-xs font-bold font-mono text-[var(--gp-text-strong)]">
+                  {totalWeekHours} <span className="text-[9px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
                 </span>
               </div>
             </div>
@@ -317,7 +337,7 @@ export function ActivitySidebar({
                 </div>
 
                 {/* Bars Area with Target Line Overlay */}
-                <div className="relative h-[56px] w-full pt-1">
+                <div className="relative h-[72px] w-full pt-2">
                   {/* Horizontal Dashed Target Line */}
                   {dailyHours > 0 && targetLinePercent > 0 && (
                     <div
@@ -335,29 +355,50 @@ export function ActivitySidebar({
                     {weekDaysData.map((d, idx) => {
                       const hasHours = d.hours > 0;
                       const barHeight = maxDailyVal > 0 && hasHours
-                        ? Math.min(100, Math.max(8, (d.hours / maxDailyVal) * 100))
+                        ? Math.min(100, Math.max(10, (d.hours / maxDailyVal) * 100))
                         : 0;
 
                       return (
                         <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative">
                           {/* Tooltip on hover */}
-                          <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-[var(--gp-floating)] border border-[var(--gp-divider)] text-[10px] font-mono px-1.5 py-0.5 rounded shadow-lg z-30 whitespace-nowrap text-[var(--gp-text-strong)]">
-                            {d.label}: {d.hours.toFixed(1)} ชม.
+                          <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-[var(--gp-floating)] border border-[var(--gp-divider)] text-[10px] font-mono px-2 py-0.5 rounded shadow-lg z-30 whitespace-nowrap text-[var(--gp-text-strong)]">
+                            {d.isToday ? 'วันนี้ ' : d.isYesterday ? 'เมื่อวาน ' : ''}{d.label}: {d.hours.toFixed(1)} ชม.
                           </div>
 
-                          {/* Bar Column Track */}
-                          <div className="w-full max-w-[20px] bg-[var(--gp-elevated)]/30 rounded-t-md overflow-hidden flex items-end h-full relative">
+                          {/* Hours Label above bar so hovering is not required */}
+                          {hasHours && (
+                            <span className={`text-[8.5px] font-mono font-bold leading-none mb-1 select-none pointer-events-none ${
+                              d.isToday ? 'text-[var(--gp-brand-light)] drop-shadow-sm' : 'text-[var(--gp-text-strong)]'
+                            }`}>
+                              {d.hours}
+                            </span>
+                          )}
+
+                          {/* Bar Column Track with Today Highlight */}
+                          <div
+                            className={`w-full max-w-[20px] rounded-t-md overflow-hidden flex items-end h-full relative transition-all ${
+                              d.isToday
+                                ? 'bg-[var(--gp-brand)]/15 border-x border-t border-[var(--gp-brand)]/40 shadow-[0_0_8px_rgba(88,101,242,0.25)]'
+                                : 'bg-[var(--gp-elevated)]/30'
+                            }`}
+                          >
                             {hasHours ? (
                               <div
                                 className={`w-full rounded-t-md transition-all duration-500 ${
                                   d.isToday
-                                    ? 'bg-gradient-to-t from-[var(--gp-brand)] to-[var(--gp-brand-light)] shadow-[0_0_8px_rgba(88,101,242,0.6)]'
+                                    ? 'bg-gradient-to-t from-[var(--gp-brand)] to-[#7983f5] shadow-[0_0_10px_rgba(88,101,242,0.7)]'
                                     : 'bg-[var(--gp-brand)]/80 hover:bg-[var(--gp-brand)]'
                                 }`}
                                 style={{ height: `${barHeight}%` }}
                               />
                             ) : (
-                              <div className="w-full h-[2px] bg-[var(--gp-divider)] self-end" />
+                              <div className="w-full flex justify-center pb-0.5 self-end">
+                                {d.isToday ? (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--gp-brand-light)] animate-pulse" title="วันนี้ยังไม่มีบันทึกเวลา" />
+                                ) : (
+                                  <div className="w-full h-[2px] bg-[var(--gp-divider)]" />
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -367,18 +408,26 @@ export function ActivitySidebar({
                 </div>
 
                 {/* Day Labels below bars */}
-                <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-[var(--gp-divider)]/40">
+                <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-[var(--gp-divider)]/40">
                   {weekDaysData.map((d, idx) => (
-                    <span
-                      key={idx}
-                      className={`flex-1 text-center text-[10px] font-medium transition-colors ${
-                        d.isToday
-                          ? 'text-[var(--gp-brand-light)] font-bold'
-                          : 'text-[var(--gp-text-muted)]'
-                      }`}
-                    >
-                      {d.label}
-                    </span>
+                    <div key={idx} className="flex-1 flex flex-col items-center">
+                      {d.isToday ? (
+                        <span className="px-1.5 py-0.5 rounded-md bg-[var(--gp-brand)] text-white font-bold text-[9px] shadow-xs flex flex-col items-center leading-none">
+                          <span>{d.label}</span>
+                          <span className="text-[7px] text-white/90 scale-90 -mt-0.5">วันนี้</span>
+                        </span>
+                      ) : (
+                        <span
+                          className={`text-[10px] font-medium transition-colors ${
+                            d.isYesterday
+                              ? 'text-[var(--gp-text-strong)] font-semibold'
+                              : 'text-[var(--gp-text-muted)]'
+                          }`}
+                        >
+                          {d.label}
+                        </span>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
