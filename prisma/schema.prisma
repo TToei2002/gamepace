@@ -51,6 +51,7 @@ model UserGame {
   syncHistories        SyncHistory[]
 
   @@index([userId, status])
+  @@index([gameId])
 }
 
 model SyncHistory {
@@ -60,4 +61,7 @@ model SyncHistory {
   newMinutes      Int
   syncedAt        DateTime @default(now())
   userGame        UserGame @relation(fields: [userGameId], references: [id], onDelete: Cascade)
+
+  @@index([userGameId])
+  @@index([syncedAt])
 }

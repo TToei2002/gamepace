@@ -107,12 +107,16 @@ export function ActivitySidebar({
     totalTodayMinutes,
     totalYesterdayMinutes,
     dayMinutesMap,
+    dayGamesMap,
     gamesWithWeekDeltas,
   } = React.useMemo(() => {
     let weekMins = 0;
     let todayMins = 0;
     let yesterdayMins = 0;
     const dailyMins = [0, 0, 0, 0, 0, 0, 0];
+    const dailyGames: Array<Array<{ title: string; coverUrl?: string | null; minutes: number }>> = [
+      [], [], [], [], [], [], []
+    ];
 
     const withDeltas = userGames.map((game) => {
       let gWeekMinutes = 0;
@@ -131,8 +135,20 @@ export function ActivitySidebar({
 
             // Determine which day of the week this sync occurred on (0 = Mon ... 6 = Sun) using user's local timezone
             const syncDayIdx = (syncDate.getDay() + 6) % 7;
-            if (syncDayIdx >= 0 && syncDayIdx < 7) {
+            if (syncDayIdx >= 0 && syncDayIdx < 7 && diff > 0) {
               dailyMins[syncDayIdx] += diff;
+
+              // Aggregate by game for daily breakdown tooltip
+              const existingGame = dailyGames[syncDayIdx].find((entry) => entry.title === game.game.title);
+              if (existingGame) {
+                existingGame.minutes += diff;
+              } else {
+                dailyGames[syncDayIdx].push({
+                  title: game.game.title,
+                  coverUrl: game.game.coverUrl,
+                  minutes: diff,
+                });
+              }
             }
           }
 
@@ -163,6 +179,7 @@ export function ActivitySidebar({
       totalTodayMinutes: todayMins,
       totalYesterdayMinutes: yesterdayMins,
       dayMinutesMap: dailyMins,
+      dayGamesMap: dailyGames,
       gamesWithWeekDeltas: withDeltas,
     };
   }, [userGames, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfYesterday, endOfYesterday]);
@@ -175,27 +192,34 @@ export function ActivitySidebar({
   const weekDaysData = React.useMemo(() => {
     return dayNames.map((label, idx) => {
       const hours = Number((dayMinutesMap[idx] / 60).toFixed(1));
+      const rawGames = dayGamesMap[idx] || [];
+      const games = rawGames
+        .map((g) => ({
+          ...g,
+          hours: Number((g.minutes / 60).toFixed(1)),
+        }))
+        .sort((a, b) => b.minutes - a.minutes);
+
       return {
         label,
         hours,
+        games,
         isToday: idx === currentDayOfWeek,
         isYesterday: idx === yesterdayDayOfWeek,
         isPast: idx < currentDayOfWeek,
         isFuture: idx > currentDayOfWeek,
       };
     });
-  }, [dayMinutesMap, currentDayOfWeek, yesterdayDayOfWeek]);
+  }, [dayNames, dayMinutesMap, dayGamesMap, currentDayOfWeek, yesterdayDayOfWeek]);
 
   const maxDailyVal = Math.max(
-    dailyHours * 1.3,
-    weekdayHours,
-    weekendHours,
+    dailyHours * 1.25,
     ...weekDaysData.map((d) => d.hours),
     1
   );
 
   const targetLinePercent = maxDailyVal > 0 && dailyHours > 0
-    ? Math.min(88, Math.max(12, (dailyHours / maxDailyVal) * 100))
+    ? (dailyHours / maxDailyVal) * 100
     : 0;
 
   const weeklyPercent = weeklyHours > 0
@@ -286,24 +310,18 @@ export function ActivitySidebar({
               </span>
             </div>
 
-            {/* Quick Yesterday vs Today vs This Week Breakdown */}
-            <div className="grid grid-cols-3 gap-1.5">
+            {/* Quick Yesterday vs This Week Breakdown */}
+            <div className="grid grid-cols-2 gap-2">
               <div className="p-2 rounded-lg bg-[var(--gp-rail)]/80 border border-[var(--gp-divider)]">
-                <span className="text-[9.5px] text-[var(--gp-text-muted)] block truncate">เมื่อวาน</span>
+                <span className="text-[10px] text-[var(--gp-text-muted)] block">เมื่อวาน</span>
                 <span className="text-xs font-bold font-mono text-[var(--gp-text-strong)]">
-                  {totalYesterdayHours} <span className="text-[9px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
+                  {totalYesterdayHours} <span className="text-[10px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
                 </span>
               </div>
-              <div className="p-2 rounded-lg bg-[var(--gp-brand)]/10 border border-[var(--gp-brand)]/40 shadow-xs">
-                <span className="text-[9.5px] text-[var(--gp-brand-light)] font-bold block truncate">วันนี้</span>
+              <div className="p-2 rounded-lg bg-[var(--gp-rail)]/80 border border-[var(--gp-divider)]">
+                <span className="text-[10px] text-[var(--gp-text-muted)] block">สัปดาห์นี้</span>
                 <span className="text-xs font-bold font-mono text-[var(--gp-brand-light)]">
-                  {totalTodayHours} <span className="text-[9px] font-normal text-[var(--gp-brand-light)]/80">ชม.</span>
-                </span>
-              </div>
-              <div className="p-2 rounded-lg bg-[var(--gp-rail)]/80 border border-[var(--gp-divider)]">
-                <span className="text-[9.5px] text-[var(--gp-text-muted)] block truncate">สัปดาห์นี้</span>
-                <span className="text-xs font-bold font-mono text-[var(--gp-text-strong)]">
-                  {totalWeekHours} <span className="text-[9px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
+                  {totalWeekHours} <span className="text-[10px] font-normal text-[var(--gp-text-muted)]">ชม.</span>
                 </span>
               </div>
             </div>
@@ -337,70 +355,124 @@ export function ActivitySidebar({
                 </div>
 
                 {/* Bars Area with Target Line Overlay */}
-                <div className="relative h-[72px] w-full pt-2">
+                <div className="relative h-[78px] w-full">
                   {/* Horizontal Dashed Target Line */}
                   {dailyHours > 0 && targetLinePercent > 0 && (
                     <div
-                      className="absolute left-0 right-0 border-b border-dashed border-[var(--gp-brand-light)]/30 z-10 pointer-events-none flex items-center justify-end"
+                      className="absolute left-0 right-0 border-b border-dashed border-[#808df8]/40 z-0 pointer-events-none"
                       style={{ bottom: `${targetLinePercent}%` }}
-                    >
-                      <span className="text-[8.5px] font-mono text-[var(--gp-brand-light)] bg-[var(--gp-floating)]/90 px-1 py-0.2 rounded border border-[var(--gp-brand)]/30 -translate-y-1/2 shadow-xs">
-                        {dailyHours} ชม.
-                      </span>
-                    </div>
+                    />
                   )}
 
                   {/* 7 Day Bars */}
-                  <div className="flex items-end justify-between gap-1.5 h-full w-full">
+                  <div className="flex items-end justify-between gap-1.5 h-full w-full relative z-10">
                     {weekDaysData.map((d, idx) => {
                       const hasHours = d.hours > 0;
                       const barHeight = maxDailyVal > 0 && hasHours
-                        ? Math.min(100, Math.max(10, (d.hours / maxDailyVal) * 100))
+                        ? Math.min(100, Math.max(8, (d.hours / maxDailyVal) * 100))
                         : 0;
 
+                      // Alignment of tooltip so it doesn't get cut off on edges
+                      const tooltipAlignClass =
+                        idx === 0
+                          ? 'left-0 translate-x-0'
+                          : idx >= 5
+                            ? 'right-0 translate-x-0'
+                            : 'left-1/2 -translate-x-1/2';
+
+                      const caretAlignClass =
+                        idx === 0
+                          ? 'left-4'
+                          : idx >= 5
+                            ? 'right-4'
+                            : 'left-1/2 -translate-x-1/2';
+
                       return (
-                        <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative">
-                          {/* Tooltip on hover */}
-                          <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-[var(--gp-floating)] border border-[var(--gp-divider)] text-[10px] font-mono px-2 py-0.5 rounded shadow-lg z-30 whitespace-nowrap text-[var(--gp-text-strong)]">
-                            {d.isToday ? 'วันนี้ ' : d.isYesterday ? 'เมื่อวาน ' : ''}{d.label}: {d.hours.toFixed(1)} ชม.
+                        <div
+                          key={idx}
+                          className="flex-1 flex flex-col items-center h-full justify-end group/bar relative cursor-pointer"
+                        >
+                          {/* Hover Tooltip: Breakdown of games played on this day */}
+                          <div
+                            className={`absolute bottom-[calc(100%+8px)] ${tooltipAlignClass} opacity-0 pointer-events-none group-hover/bar:opacity-100 group-hover/bar:pointer-events-auto transition-all duration-150 ease-out z-50 bg-[var(--gp-floating)] border border-[var(--gp-border-strong)] rounded-lg shadow-xl p-2.5 min-w-[145px] max-w-[210px] whitespace-normal`}
+                          >
+                            <div className="flex items-center justify-between border-b border-[var(--gp-divider)] pb-1 mb-1.5 gap-2">
+                              <span className="text-[10px] font-bold text-[var(--gp-text-strong)] truncate">
+                                {d.isToday ? 'วันนี้ ' : d.isYesterday ? 'เมื่อวาน ' : ''}{d.label}
+                              </span>
+                              <span className="text-[10px] font-mono font-bold text-[#808df8] shrink-0">
+                                {d.hours} ชม.
+                              </span>
+                            </div>
+
+                            {d.games.length > 0 ? (
+                              <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
+                                {d.games.map((g, gIdx) => (
+                                  <div key={gIdx} className="flex items-center justify-between gap-1.5 text-[9.5px]">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      {g.coverUrl ? (
+                                        <img
+                                          src={g.coverUrl}
+                                          alt=""
+                                          className="w-4 h-4 rounded shrink-0 object-cover border border-[var(--gp-divider)]"
+                                        />
+                                      ) : (
+                                        <div className="w-4 h-4 rounded shrink-0 bg-[var(--gp-elevated)] flex items-center justify-center text-[7px] text-[var(--gp-text-muted)] font-mono">
+                                          🎮
+                                        </div>
+                                      )}
+                                      <span className="text-[9.5px] font-medium text-[var(--gp-text)] truncate max-w-[95px]" title={g.title}>
+                                        {g.title}
+                                      </span>
+                                    </div>
+                                    <span className="text-[9.5px] font-mono font-semibold text-[var(--gp-brand-light)] shrink-0">
+                                      +{g.hours} ชม.
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-[9px] text-[var(--gp-text-faint)] text-center py-0.5">
+                                ยังไม่มีบันทึกเวลาเล่น
+                              </p>
+                            )}
+
+                            {/* Arrow Pointer */}
+                            <div
+                              className={`absolute -bottom-1 ${caretAlignClass} w-2 h-2 bg-[var(--gp-floating)] border-r border-b border-[var(--gp-border-strong)] rotate-45`}
+                            />
                           </div>
 
-                          {/* Hours Label above bar so hovering is not required */}
+                          {/* Hours Label above bar */}
                           {hasHours && (
-                            <span className={`text-[8.5px] font-mono font-bold leading-none mb-1 select-none pointer-events-none ${
-                              d.isToday ? 'text-[var(--gp-brand-light)] drop-shadow-sm' : 'text-[var(--gp-text-strong)]'
-                            }`}>
+                            <span
+                              className={`text-[8.5px] font-mono font-bold leading-none mb-1 select-none pointer-events-none transition-colors group-hover/bar:text-white ${
+                                d.isToday
+                                  ? 'text-[#808df8] drop-shadow-sm'
+                                  : d.isYesterday
+                                    ? 'text-white'
+                                    : 'text-[var(--gp-text-strong)]'
+                              }`}
+                            >
                               {d.hours}
                             </span>
                           )}
 
-                          {/* Bar Column Track with Today Highlight */}
-                          <div
-                            className={`w-full max-w-[20px] rounded-t-md overflow-hidden flex items-end h-full relative transition-all ${
-                              d.isToday
-                                ? 'bg-[var(--gp-brand)]/15 border-x border-t border-[var(--gp-brand)]/40 shadow-[0_0_8px_rgba(88,101,242,0.25)]'
-                                : 'bg-[var(--gp-elevated)]/30'
-                            }`}
-                          >
-                            {hasHours ? (
-                              <div
-                                className={`w-full rounded-t-md transition-all duration-500 ${
-                                  d.isToday
-                                    ? 'bg-gradient-to-t from-[var(--gp-brand)] to-[#7983f5] shadow-[0_0_10px_rgba(88,101,242,0.7)]'
-                                    : 'bg-[var(--gp-brand)]/80 hover:bg-[var(--gp-brand)]'
-                                }`}
-                                style={{ height: `${barHeight}%` }}
-                              />
-                            ) : (
-                              <div className="w-full flex justify-center pb-0.5 self-end">
-                                {d.isToday ? (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--gp-brand-light)] animate-pulse" title="วันนี้ยังไม่มีบันทึกเวลา" />
-                                ) : (
-                                  <div className="w-full h-[2px] bg-[var(--gp-divider)]" />
-                                )}
-                              </div>
-                            )}
-                          </div>
+                          {/* Solid Bar - Clean without outer capsule frame */}
+                          {hasHours ? (
+                            <div
+                              className={`w-full max-w-[20px] rounded-t-md transition-all duration-300 group-hover/bar:brightness-125 ${
+                                d.isToday
+                                  ? 'bg-gradient-to-t from-[#5865f2] to-[#808df8] shadow-[0_0_10px_rgba(88,101,242,0.6)]'
+                                  : d.isYesterday
+                                    ? 'bg-gradient-to-t from-[#4f5be3] to-[#7280f5]'
+                                    : 'bg-gradient-to-t from-[#3c46b8] to-[#5d6bf0]'
+                              }`}
+                              style={{ height: `${barHeight}%` }}
+                            />
+                          ) : (
+                            <div className="w-3 h-[2px] bg-white/10 rounded-full my-0.5 group-hover/bar:bg-white/30" />
+                          )}
                         </div>
                       );
                     })}
@@ -412,9 +484,8 @@ export function ActivitySidebar({
                   {weekDaysData.map((d, idx) => (
                     <div key={idx} className="flex-1 flex flex-col items-center">
                       {d.isToday ? (
-                        <span className="px-1.5 py-0.5 rounded-md bg-[var(--gp-brand)] text-white font-bold text-[9px] shadow-xs flex flex-col items-center leading-none">
-                          <span>{d.label}</span>
-                          <span className="text-[7px] text-white/90 scale-90 -mt-0.5">วันนี้</span>
+                        <span className="px-1.5 py-0.5 rounded-md bg-[var(--gp-brand)] text-white font-bold text-[9.5px] shadow-xs leading-none">
+                          {d.label}
                         </span>
                       ) : (
                         <span
