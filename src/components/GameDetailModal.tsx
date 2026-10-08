@@ -120,6 +120,7 @@ export function GameDetailModal({
 
           <button
             onClick={onClose}
+            aria-label="ปิดหน้ารายละเอียดเกม"
             className="p-1 rounded-lg text-[var(--gp-text-muted)] hover:text-[var(--gp-text)] hover:bg-[var(--gp-elevated)] transition-colors shrink-0"
           >
             <X className="w-4 h-4" />

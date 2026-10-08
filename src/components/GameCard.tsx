@@ -115,12 +115,12 @@ export function GameCard({
             />
           </div>
           <div className="min-w-0 flex-grow">
-            <h4
+            <h3
               className="font-medium text-xs truncate transition-colors text-[var(--gp-text)] group-hover:text-[var(--gp-text-strong)]"
               title={userGame.game.title}
             >
               {userGame.game.title}
-            </h4>
+            </h3>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--gp-rail)]/60 border border-[var(--gp-divider)] text-[9.5px] font-medium text-[var(--gp-text-muted)] tracking-tight">
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${goalBadge.dot}`} />

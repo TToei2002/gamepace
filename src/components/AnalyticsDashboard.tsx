@@ -91,7 +91,7 @@ export function AnalyticsDashboard({
         </div>
       )}
 
-      {/* Top Stat Overview Cards (Discord Insights style) */}
+      {/* Top Stat Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Total Backlog Games */}
         <div className="bg-[var(--gp-secondary)] p-4 rounded-xl border border-[var(--gp-border)] shadow-xs flex flex-col justify-between">

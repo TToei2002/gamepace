@@ -143,6 +143,7 @@ export function GamingWrappedModal({
 
           <button
             onClick={onClose}
+            aria-label="ปิดหน้าต่าง Gaming Wrapped"
             className="p-1 rounded-lg text-[var(--gp-text-muted)] hover:text-[var(--gp-text)] hover:bg-[var(--gp-elevated)] transition-colors"
             title="ปิดหน้าต่าง"
           >

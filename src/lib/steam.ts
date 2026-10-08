@@ -3,6 +3,7 @@ export interface SteamGameItem {
   title: string;
   coverUrl: string;
   playedMinutes: number;
+  playtime2Weeks?: number;
   rtimeLastPlayed?: number;
 }
 
@@ -188,6 +189,7 @@ export async function fetchSteamOwnedGames(steamId?: string): Promise<FetchOwned
           title: g.name || `App ${g.appid}`,
           coverUrl: `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${g.appid}/header.jpg`,
           playedMinutes: g.playtime_forever || 0,
+          playtime2Weeks: g.playtime_2weeks || 0,
           rtimeLastPlayed: g.rtime_last_played || 0,
         }))
         .sort((a: SteamGameItem, b: SteamGameItem) => b.playedMinutes - a.playedMinutes);

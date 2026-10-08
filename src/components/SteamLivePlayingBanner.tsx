@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Play, Sparkles, Clock, Compass, ChevronRight } from 'lucide-react';
+import { Play, Sparkles, Clock, Compass, ChevronRight, Bookmark } from 'lucide-react';
 import { UserGameItem } from './GameCard';
 
 export interface SteamLiveStatusInfo {
@@ -16,6 +16,7 @@ interface SteamLivePlayingBannerProps {
   allUserGames?: UserGameItem[];
   onOpenDetail?: (game: UserGameItem) => void;
   onAddLiveGameToEndless?: (gameInfo: SteamLiveStatusInfo) => void;
+  onQuickImportLive?: (status: 'PLAYING' | 'BACKLOG', goal?: string) => void;
   onOpenSteamSearch?: () => void;
 }
 
@@ -24,6 +25,7 @@ export function SteamLivePlayingBanner({
   allUserGames = [],
   onOpenDetail,
   onAddLiveGameToEndless,
+  onQuickImportLive,
   onOpenSteamSearch,
 }: SteamLivePlayingBannerProps) {
   const isLive = Boolean(currentlyPlaying?.isPlaying);
@@ -233,6 +235,35 @@ export function SteamLivePlayingBanner({
             >
               <span>ดูรายละเอียดเกม</span>
               <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Live game but not tracked yet: Quick 1-click add */}
+        {isLive && !matchedGame && onQuickImportLive && (
+          <div className="flex items-center gap-2 shrink-0 self-end md:self-center flex-wrap">
+            <button
+              type="button"
+              onClick={() => onQuickImportLive('PLAYING', 'Main + Extra')}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white transition-all shadow-xs flex items-center gap-1.5"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>กำลังเล่น</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onQuickImportLive('BACKLOG', 'Main + Extra')}
+              className="px-3 py-2 rounded-xl text-xs font-semibold bg-[var(--gp-rail)] hover:bg-[var(--gp-divider)] active:scale-95 text-[var(--gp-text-strong)] border border-[var(--gp-divider)] transition-all flex items-center gap-1.5"
+            >
+              <Bookmark className="w-3.5 h-3.5" />
+              <span>Backlog</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onQuickImportLive('PLAYING', 'ENDLESS')}
+              className="hidden sm:flex px-3 py-2 rounded-xl text-xs font-medium bg-[var(--gp-rail)] hover:bg-[var(--gp-divider)] active:scale-95 text-[var(--gp-text-muted)] hover:text-[var(--gp-text)] border border-[var(--gp-divider)] transition-all items-center gap-1.5"
+            >
+              <span>Endless</span>
             </button>
           </div>
         )}

@@ -251,6 +251,7 @@ export function ActivitySidebar({
           <button
             type="button"
             onClick={onToggle}
+            aria-label="พับแถบข้าง"
             className="p-1.5 rounded-lg text-[var(--gp-text-muted)] hover:text-[var(--gp-text-strong)] hover:bg-[var(--gp-hover)] transition-colors"
             title="พับแถบข้าง"
           >

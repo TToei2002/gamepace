@@ -60,6 +60,7 @@ export function UserPacingModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="ปิดหน้าต่างตั้งค่า Pacing"
             className="p-1 rounded-lg text-[var(--gp-text-muted)] hover:text-[var(--gp-text)] hover:bg-[var(--gp-elevated)] transition-colors"
           >
             <X className="w-4 h-4" />
@@ -203,7 +204,7 @@ export function UserPacingModal({
             </div>
           </div>
 
-          {/* Discord-style Footer */}
+          {/* Modal Footer */}
           <div className="p-4 bg-[var(--gp-secondary)] border-t border-[var(--gp-border-subtle)] flex items-center justify-end gap-2.5">
             <button
               type="button"

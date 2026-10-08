@@ -7,6 +7,8 @@ import { GameCard, UserGameItem } from './GameCard';
 import { GameDetailModal } from './GameDetailModal';
 import { EndlessGamesRow, SteamLiveStatusInfo } from './EndlessGamesRow';
 import { SteamLivePlayingBanner } from './SteamLivePlayingBanner';
+import { SteamSuggestionBanner } from './SteamSuggestionBanner';
+import { SteamGameItem } from '@/lib/steam';
 
 type ColumnId = 'BACKLOG' | 'PLAYING' | 'COMPLETED' | 'DROPPED';
 
@@ -34,6 +36,10 @@ interface KanbanBoardProps {
   onRemoveGame: (id: string) => void;
   onOpenSteamSearch?: () => void;
   onAddLiveGameToEndless?: (gameInfo: SteamLiveStatusInfo) => void;
+  suggestedGames?: SteamGameItem[];
+  onImportSuggestedGame?: (game: SteamGameItem, status: 'PLAYING' | 'BACKLOG', goal?: string) => Promise<void> | void;
+  onDismissSuggestion?: (appId: number) => void;
+  onQuickImportLiveGame?: (status: 'PLAYING' | 'BACKLOG', goal?: string) => void;
 }
 
 export function KanbanBoard({
@@ -48,6 +54,10 @@ export function KanbanBoard({
   onRemoveGame,
   onOpenSteamSearch,
   onAddLiveGameToEndless,
+  suggestedGames = [],
+  onImportSuggestedGame,
+  onDismissSuggestion,
+  onQuickImportLiveGame,
 }: KanbanBoardProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<DropTargetState | null>(null);
@@ -262,12 +272,22 @@ export function KanbanBoard({
 
   return (
     <div id="tour-kanban" className="flex flex-col gap-5 w-full min-w-0">
+      {/* Smart Steam Suggestion Banner (Method 2: Auto-detected recently played games) */}
+      {suggestedGames.length > 0 && onImportSuggestedGame && onDismissSuggestion && (
+        <SteamSuggestionBanner
+          suggestions={suggestedGames}
+          onImport={onImportSuggestedGame}
+          onDismiss={onDismissSuggestion}
+        />
+      )}
+
       {/* Hero Now Playing / Up Next Banner */}
       <SteamLivePlayingBanner
         currentlyPlaying={currentlyPlaying}
         allUserGames={userGames}
         onOpenDetail={(game) => setSelectedGameId(game.id)}
         onAddLiveGameToEndless={onAddLiveGameToEndless}
+        onQuickImportLive={onQuickImportLiveGame}
         onOpenSteamSearch={onOpenSteamSearch}
       />
 

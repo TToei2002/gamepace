@@ -126,6 +126,7 @@ export function SteamSearchModal({
             <button
               onClick={() => fetchLibrary(true)}
               disabled={loading}
+              aria-label="ดึงข้อมูลล่าสุดจาก Steam ใหม่"
               title="ดึงข้อมูลล่าสุดจาก Steam ใหม่"
               className="p-1 px-2 rounded-lg border border-[var(--gp-border-subtle)] bg-[var(--gp-rail)] text-xs flex items-center gap-1 text-[var(--gp-text-muted)] hover:text-[var(--gp-text)] transition-colors disabled:opacity-50"
             >
@@ -134,6 +135,7 @@ export function SteamSearchModal({
             </button>
             <button
               onClick={onClose}
+              aria-label="ปิดหน้าต่างค้นหาเกม"
               className="p-1 rounded-lg text-[var(--gp-text-muted)] hover:text-[var(--gp-text)] hover:bg-[var(--gp-elevated)] transition-colors"
             >
               <X className="w-4 h-4" />

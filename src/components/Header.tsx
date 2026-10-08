@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { 
   Gamepad2, 
   RefreshCw, 
@@ -9,7 +10,9 @@ import {
   BarChart3, 
   PanelRight, 
   Search,
-  Hash
+  Hash,
+  Sparkles,
+  BookOpen
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { ThemeMode } from '@/lib/theme';
@@ -61,7 +64,7 @@ export function Header({
         borderColor: 'var(--gp-divider)',
       }}
     >
-      {/* Left: Discord Channel Header style */}
+      {/* Left: Channel Header style */}
       <div className="flex items-center gap-3 min-w-0">
         <div className="flex items-center gap-2 text-[var(--gp-text-muted)]">
           <Hash className="w-5 h-5 text-[var(--gp-text-muted)]" />
@@ -87,6 +90,7 @@ export function Header({
           id="tour-add-game"
           type="button"
           onClick={onOpenSteamSearch}
+          aria-label="เพิ่มเกมใหม่จาก Steam"
           className="px-3 py-1.5 rounded-md text-xs font-semibold bg-[var(--gp-brand)] hover:bg-[var(--gp-brand-hover)] text-white flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -98,6 +102,7 @@ export function Header({
           type="button"
           onClick={() => onTriggerSteamSync()}
           disabled={isSyncing}
+          aria-label="ซิงค์ข้อมูลชั่วโมงเล่นล่าสุดจาก Steam"
           className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-md text-xs font-semibold bg-[var(--gp-secondary)] hover:bg-[var(--gp-hover)] text-[var(--gp-text-strong)] border border-[var(--gp-divider)] flex items-center gap-1.5 transition-all disabled:opacity-50"
           title="ซิงค์ข้อมูลชั่วโมงเล่นล่าสุดจาก Steam"
         >
@@ -110,6 +115,7 @@ export function Header({
           id="tour-steam-connect"
           type="button"
           onClick={onOpenSteamConnect}
+          aria-label={user?.steamId ? `Steam ID: ${user.steamId}` : 'เชื่อมต่อบัญชี Steam'}
           className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-[var(--gp-secondary)] hover:bg-[var(--gp-hover)] text-[var(--gp-text)] border border-[var(--gp-divider)] transition-all"
           title={user?.steamId ? `Steam ID: ${user.steamId}` : 'เชื่อมต่อบัญชี Steam'}
         >
@@ -122,6 +128,17 @@ export function Header({
           />
         </button>
 
+        {/* Docs & Changelog Link */}
+        <Link
+          href="/changelog"
+          aria-label="คู่มือการใช้งาน & มีอะไรใหม่ (Manual & Changelog)"
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-[var(--gp-secondary)] hover:bg-[var(--gp-hover)] text-[var(--gp-text-strong)] border border-[var(--gp-divider)] transition-all"
+          title="ดูคู่มือการใช้งานและบันทึกการอัปเดต"
+        >
+          <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+          <span>คู่มือ & มีอะไรใหม่</span>
+        </Link>
+
         {/* Theme Toggle */}
         <div className="hidden sm:block">
           <ThemeToggle currentTheme={currentTheme} onThemeChange={onThemeChange} />
@@ -132,6 +149,7 @@ export function Header({
           <button
             type="button"
             onClick={onToggleSidebar}
+            aria-label={isSidebarOpen ? 'ซ่อนแถบ Activity & Pacing' : 'แสดงแถบ Activity & Pacing'}
             className={`p-1.5 rounded-md border border-[var(--gp-divider)] transition-all ${
               isSidebarOpen 
                 ? 'bg-[var(--gp-brand)] text-white shadow-xs' 

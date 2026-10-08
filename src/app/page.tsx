@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { ServerRail } from '@/components/ServerRail';
 import { ActivitySidebar } from '@/components/ActivitySidebar';
-import { PacingOverviewBanner } from '@/components/PacingOverviewBanner';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
 import { SteamSearchModal } from '@/components/SteamSearchModal';
@@ -12,11 +11,12 @@ import { SteamConnectModal } from '@/components/SteamConnectModal';
 import { UserPacingModal } from '@/components/UserPacingModal';
 import { GamingWrappedModal } from '@/components/GamingWrappedModal';
 import { OnboardingTutorialModal } from '@/components/OnboardingTutorialModal';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { UserGameItem } from '@/components/GameCard';
 import { SteamGameItem } from '@/lib/steam';
 import { evaluateBurnoutRisk } from '@/lib/pacing';
 import { ThemeMode } from '@/lib/theme';
-import { CloudDownload, X, Heart, Info } from 'lucide-react';
+import { CloudDownload, X } from 'lucide-react';
 
 export default function HomePage() {
   const [user, setUser] = useState<{
@@ -55,6 +55,7 @@ export default function HomePage() {
   const [isSteamConnectOpen, setIsSteamConnectOpen] = useState(false);
   const [isPacingModalOpen, setIsPacingModalOpen] = useState(false);
   const [isGamingWrappedOpen, setIsGamingWrappedOpen] = useState(false);
+  const [suggestedSteamGames, setSuggestedSteamGames] = useState<SteamGameItem[]>([]);
 
   // Global Ctrl+K shortcut to open Steam Search
   useEffect(() => {
@@ -185,6 +186,26 @@ export default function HomePage() {
     }
   };
 
+  // Helper to read dismissed suggested game IDs
+  const getDismissedSuggestionIds = (): number[] => {
+    try {
+      const stored = localStorage.getItem('gamepace_dismissed_suggestions');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const handleDismissSuggestion = (appId: number) => {
+    const dismissed = getDismissedSuggestionIds();
+    if (!dismissed.includes(appId)) {
+      dismissed.push(appId);
+      localStorage.setItem('gamepace_dismissed_suggestions', JSON.stringify(dismissed));
+    }
+    setSuggestedSteamGames((prev) => prev.filter((g) => g.appId !== appId));
+    showToast('ข้ามการแนะนำเกมนี้แล้ว (จะไม่แสดงซ้ำอีก)');
+  };
+
   // Steam Sync Action
   const triggerSteamSync = async (targetUserId?: any) => {
     const resolvedUserId = typeof targetUserId === 'string' ? targetUserId : user?.id;
@@ -199,6 +220,20 @@ export default function HomePage() {
 
       if (data.userGames) {
         setUserGames(data.userGames);
+      }
+
+      // Process suggested recently played games (Method 2)
+      if (Array.isArray(data.suggestedGames)) {
+        const dismissed = getDismissedSuggestionIds();
+        const currentAppIds = new Set(
+          (data.userGames || userGames)
+            .map((ug: any) => ug.game?.steamAppId)
+            .filter((id: any): id is number => typeof id === 'number')
+        );
+        const filtered = data.suggestedGames.filter(
+          (g: SteamGameItem) => !dismissed.includes(g.appId) && !currentAppIds.has(g.appId)
+        );
+        setSuggestedSteamGames(filtered);
       }
 
       // Also refresh live player status & log to console
@@ -527,10 +562,19 @@ export default function HomePage() {
     }
   };
 
-  // Import Game from Steam Search Modal
-  const handleImportGame = async (steamGame: SteamGameItem) => {
+  // Import Game from Steam Search Modal or Smart Suggestion Banner
+  const handleImportGame = async (
+    steamGame: SteamGameItem,
+    targetStatus: 'PLAYING' | 'BACKLOG' = 'BACKLOG',
+    targetGoal: string = 'Main + Extra'
+  ) => {
     // 1. Optimistic UI: Close modal immediately
     setIsSteamSearchOpen(false);
+
+    // If game was present in suggested games list, remove it immediately
+    setSuggestedSteamGames((prev) => prev.filter((g) => g.appId !== steamGame.appId));
+
+    const isEndless = targetGoal === 'ENDLESS';
 
     // 2. Create a temporary optimistic game object
     const tempId = `temp-${Date.now()}`;
@@ -538,10 +582,10 @@ export default function HomePage() {
       id: tempId,
       userId: user?.id || '',
       gameId: `game-${steamGame.appId}`,
-      status: 'BACKLOG',
-      targetGoal: 'Main + Extra',
-      targetHours: 40, // Temporary default
-      currentPlayedMinutes: steamGame.playedMinutes,
+      status: targetStatus,
+      targetGoal: targetGoal,
+      targetHours: isEndless ? 0 : 40, // Temporary default
+      currentPlayedMinutes: steamGame.playedMinutes || 0,
       order: 0,
       createdAt: new Date().toISOString(),
       game: {
@@ -571,15 +615,17 @@ export default function HomePage() {
           appId: steamGame.appId,
           title: steamGame.title,
           coverUrl: steamGame.coverUrl,
-          playedMinutes: steamGame.playedMinutes,
-          status: 'BACKLOG',
+          playedMinutes: steamGame.playedMinutes || 0,
+          status: targetStatus,
+          targetGoal: targetGoal,
+          estimateHours: isEndless ? 0 : undefined,
         }),
       });
 
       const data = await res.json();
       if (data.userGame) {
         let needsSync = false;
-        let syncStatus = 'BACKLOG';
+        let syncStatus: string = targetStatus;
         let syncOrder = 0;
 
         // Replace temp item with real data from database but PRESERVE user modifications
@@ -587,7 +633,7 @@ export default function HomePage() {
           const currentUIState = prev.find((g) => g.id === tempId);
           if (!currentUIState) return prev;
 
-          if (currentUIState.status !== 'BACKLOG' || currentUIState.order !== 0) {
+          if (currentUIState.status !== targetStatus || currentUIState.order !== 0) {
             needsSync = true;
             syncStatus = currentUIState.status;
             syncOrder = currentUIState.order;
@@ -617,7 +663,12 @@ export default function HomePage() {
         }
 
         if (data.message !== 'Game already in backlog') {
-          showToast(`เพิ่ม "${steamGame.title}" เข้า Backlog เรียบร้อยแล้ว!`);
+          const statusLabel = isEndless
+            ? 'แถบ Endless'
+            : targetStatus === 'PLAYING'
+              ? 'สถานะ "กำลังเล่น"'
+              : 'Backlog';
+          showToast(`เพิ่ม "${steamGame.title}" เข้า${statusLabel} เรียบร้อยแล้ว!`);
         }
       } else if (data.error) {
         // Rollback on error
@@ -630,6 +681,25 @@ export default function HomePage() {
       setUserGames((prev) => prev.filter((g) => g.id !== tempId));
       showToast('เกิดข้อผิดพลาดในการเพิ่มเกม กรุณาลองใหม่อีกครั้ง');
     }
+  };
+
+  // Quick 1-click import from live Steam game banner
+  const handleQuickImportLiveGame = async (
+    targetStatus: 'PLAYING' | 'BACKLOG' = 'PLAYING',
+    goal: string = 'Main + Extra'
+  ) => {
+    if (!currentlyPlaying?.gameTitle && !currentlyPlaying?.appId) return;
+    const steamItem: SteamGameItem = {
+      appId: currentlyPlaying.appId || 0,
+      title: currentlyPlaying.gameTitle || 'Steam Game',
+      coverUrl:
+        currentlyPlaying.coverUrl ||
+        (currentlyPlaying.appId
+          ? `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${currentlyPlaying.appId}/header.jpg`
+          : ''),
+      playedMinutes: 0,
+    };
+    await handleImportGame(steamItem, targetStatus, goal);
   };
 
   // Add Steam Live Playing Game directly into Endless row
@@ -744,7 +814,10 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden font-sans transition-colors duration-300 bg-[var(--gp-primary)] text-[var(--gp-text)] select-none">
-      {/* 1. Left Discord-style Server Rail (Icons & View Switches) */}
+      {/* 0. Full Loading Screen & Progress Bar on Initial Load/Refresh */}
+      <LoadingScreen isLoading={loading} />
+
+      {/* 1. Left Server Rail (Icons & View Switches) */}
       <ServerRail
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -778,7 +851,7 @@ export default function HomePage() {
           onOpenSteamConnect={() => setIsSteamConnectOpen(true)}
         />
 
-        {/* Sync Toast Notification (Discord System Notice style) */}
+        {/* Sync Toast Notification */}
         <div
           className={`fixed top-16 right-6 lg:right-10 z-50 transition-all duration-200 transform ${isToastVisible ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-[120%] opacity-0 scale-95'
             }`}
@@ -834,6 +907,10 @@ export default function HomePage() {
               onRemoveGame={handleRemoveGame}
               onOpenSteamSearch={() => setIsSteamSearchOpen(true)}
               onAddLiveGameToEndless={handleAddLiveGameToEndless}
+              suggestedGames={suggestedSteamGames}
+              onImportSuggestedGame={handleImportGame}
+              onDismissSuggestion={handleDismissSuggestion}
+              onQuickImportLiveGame={handleQuickImportLiveGame}
             />
           ) : (
             <AnalyticsDashboard
@@ -845,10 +922,10 @@ export default function HomePage() {
             />
           )}
 
-          {/* Discord-style Footer in Workspace */}
+          {/* Workspace Footer */}
           <footer className="w-full border-t border-[var(--gp-divider)] pt-4 pb-2 text-center text-xs text-[var(--gp-text-muted)] mt-8">
-            <div className="flex items-center justify-center gap-1.5 font-medium">
-              <span>GamePace © 2026</span>
+            <div className="flex items-center justify-center gap-3 font-medium flex-wrap">
+              <span>© 2026 GamePace.</span>
             </div>
           </footer>
         </main>

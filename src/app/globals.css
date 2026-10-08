@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 /* =========================================================
-   GamePace Design System — Discord-inspired
+   GamePace Design System
    Two-tone surfaces · one accent · quiet borders · fast motion
    ========================================================= */
 
@@ -34,8 +34,8 @@
   /* Text */
   --gp-text-strong: #f2f3f5;
   --gp-text: #dbdee1;
-  --gp-text-muted: #949ba4;
-  --gp-text-faint: #6d6f78;
+  --gp-text-muted: #a3aab6;
+  --gp-text-faint: #8a8e99;
   --gp-interactive: #b5bac1;
 
   /* Accent + semantic */
@@ -79,9 +79,9 @@
   --gp-border-strong: rgba(6, 6, 7, 0.14);
 
   --gp-text-strong: #060607;
-  --gp-text: #313338;
-  --gp-text-muted: #5c5e66;
-  --gp-text-faint: #80848e;
+  --gp-text: #2e3035;
+  --gp-text-muted: #4e525a;
+  --gp-text-faint: #656a74;
   --gp-interactive: #4e5058;
 
   --gp-brand: #5865f2;
@@ -186,7 +186,7 @@ body {
   border-radius: 4px;
 }
 
-/* Thin Discord-style scrollbars */
+/* Thin sleek scrollbars */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--gp-rail) transparent;
@@ -205,7 +205,7 @@ body {
    Components
    --------------------------------------------------------- */
 @layer components {
-  /* Category label — like Discord's "TEXT CHANNELS" */
+  /* Category label */
   .gp-label {
     @apply text-[11px] font-bold uppercase tracking-[0.02em];
     color: var(--gp-text-muted);
@@ -297,7 +297,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   Legacy class bridge (glass/gradient → flat Discord style)
+   Legacy class bridge (glass/gradient → flat modern style)
    --------------------------------------------------------- */
 .glass-panel {
   background-color: var(--gp-secondary);
@@ -321,7 +321,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   Endless progress — Discord Nitro-style animated flow
+   Endless progress — animated flow
    --------------------------------------------------------- */
 @keyframes endlessFlow {
   0% {

@@ -61,6 +61,7 @@ export function SteamConnectModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="ปิดหน้าต่างเชื่อมต่อ Steam"
             className="p-1 rounded-lg text-[var(--gp-text-muted)] hover:text-[var(--gp-text-strong)] hover:bg-[var(--gp-elevated)] transition-colors"
           >
             <X className="w-4 h-4" />

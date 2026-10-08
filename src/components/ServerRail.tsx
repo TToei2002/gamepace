@@ -11,7 +11,6 @@ import {
   Sliders, 
   Sun, 
   Moon,
-  Sparkles,
   ExternalLink
 } from 'lucide-react';
 import { ThemeMode } from '@/lib/theme';
@@ -59,7 +58,7 @@ function RailItem({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Discord-style White Pill Indicator on Left Edge */}
+      {/* White Pill Indicator on Left Edge */}
       <span
         className={`absolute left-0 w-1 bg-white rounded-r-full transition-all duration-200 pointer-events-none ${
           isActive 
@@ -99,7 +98,7 @@ function RailItem({
         )}
       </button>
 
-      {/* Floating Tooltip (Discord style) */}
+      {/* Floating Tooltip */}
       <div
         className={`absolute left-[78px] z-50 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xl whitespace-nowrap pointer-events-none transition-all duration-150 transform ${
           hovered 
@@ -147,7 +146,7 @@ export function ServerRail({
           </div>
         </RailItem>
 
-        {/* Discord Divider */}
+        {/* Rail Divider */}
         <div className="w-8 h-[2px] bg-[var(--gp-divider)] rounded-full my-1.5" />
 
         {/* Kanban Board View */}
@@ -179,6 +178,7 @@ export function ServerRail({
 
 
 
+
         {/* Add Game Button */}
         <RailItem
           tooltip="เพิ่มเกมเข้า Backlog"
@@ -191,7 +191,7 @@ export function ServerRail({
 
       {/* Bottom Group: Settings & Profile Actions */}
       <div className="flex flex-col items-center w-full gap-1">
-        {/* Discord Divider */}
+        {/* Rail Divider */}
         <div className="w-8 h-[2px] bg-[var(--gp-divider)] rounded-full my-1.5" />
 
         {/* Pacing Settings Button */}

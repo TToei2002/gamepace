@@ -20,6 +20,7 @@ export function ThemeToggle({ currentTheme, onThemeChange }: ThemeToggleProps) {
   return (
     <button
       onClick={toggleTheme}
+      aria-label={isLight ? 'สลับเป็นธีมมืด' : 'สลับเป็นธีมสว่าง'}
       title="Toggle theme (Light / Dark)"
       className="flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm group"
       style={{

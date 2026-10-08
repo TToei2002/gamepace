@@ -95,12 +95,38 @@ export async function POST(req: Request) {
       };
     });
 
+    const existingAppIds = new Set(
+      updatedUserGames
+        .map((ug) => ug.game.steamAppId)
+        .filter((id): id is number => typeof id === 'number')
+    );
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const suggestedGames = (liveOwned?.isLive && Array.isArray(liveOwned.games))
+      ? liveOwned.games
+          .filter((g: any) => {
+            if (existingAppIds.has(g.appId)) return false;
+            const hasRecent2Weeks = (g.playtime2Weeks || 0) > 0;
+            const hasPlayedRecently =
+              (g.rtimeLastPlayed || 0) > 0 &&
+              (nowSeconds - g.rtimeLastPlayed) < 14 * 86400;
+            return hasRecent2Weeks || hasPlayedRecently;
+          })
+          .sort((a: any, b: any) => {
+            if ((b.playtime2Weeks || 0) !== (a.playtime2Weeks || 0)) {
+              return (b.playtime2Weeks || 0) - (a.playtime2Weeks || 0);
+            }
+            return (b.rtimeLastPlayed || 0) - (a.rtimeLastPlayed || 0);
+          })
+      : [];
+
     return NextResponse.json({
       success: true,
       syncLogs,
       syncedAt: new Date().toISOString(),
       userGames: updatedUserGames,
       steamDebugInfo,
+      suggestedGames,
     });
   } catch (error: any) {
     console.error('Error during Steam sync:', error);
