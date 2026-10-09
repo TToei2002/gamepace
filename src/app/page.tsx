@@ -6,6 +6,7 @@ import { ServerRail } from '@/components/ServerRail';
 import { ActivitySidebar } from '@/components/ActivitySidebar';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
+import { DocsView } from '@/components/DocsView';
 import { SteamSearchModal } from '@/components/SteamSearchModal';
 import { SteamConnectModal } from '@/components/SteamConnectModal';
 import { UserPacingModal } from '@/components/UserPacingModal';
@@ -31,7 +32,7 @@ export default function HomePage() {
   const [userGames, setUserGames] = useState<UserGameItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'kanban' | 'analytics'>('kanban');
+  const [activeTab, setActiveTab] = useState<'kanban' | 'analytics' | 'manual'>('kanban');
   const [currentlyPlaying, setCurrentlyPlaying] = useState<{
     isPlaying: boolean;
     gameTitle: string | null;
@@ -912,7 +913,7 @@ export default function HomePage() {
               onDismissSuggestion={handleDismissSuggestion}
               onQuickImportLiveGame={handleQuickImportLiveGame}
             />
-          ) : (
+          ) : activeTab === 'analytics' ? (
             <AnalyticsDashboard
               userGames={userGames}
               weekdayHours={weekdayHours}
@@ -920,12 +921,14 @@ export default function HomePage() {
               onExportCSV={handleExportCSV}
               onOpenGamingWrapped={() => setIsGamingWrappedOpen(true)}
             />
+          ) : (
+            <DocsView />
           )}
 
           {/* Workspace Footer */}
           <footer className="w-full border-t border-[var(--gp-divider)] pt-4 pb-2 text-center text-xs text-[var(--gp-text-muted)] mt-8">
-            <div className="flex items-center justify-center gap-3 font-medium flex-wrap">
-              <span>© 2026 GamePace.</span>
+            <div className="flex items-center justify-center gap-2 font-medium flex-wrap">
+              <span>© 2026 GamePace. v1.2.0</span>
             </div>
           </footer>
         </main>

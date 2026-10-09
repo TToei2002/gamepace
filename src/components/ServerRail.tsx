@@ -1,32 +1,27 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { 
   Gamepad2, 
   Columns, 
   BarChart3, 
-  Gift, 
-  RefreshCw, 
-  Plus, 
-  Sliders, 
-  Sun, 
-  Moon,
-  ExternalLink
+  Sliders,
+  BookOpen
 } from 'lucide-react';
 import { ThemeMode } from '@/lib/theme';
-import { SteamIcon } from './SteamIcon';
 
 interface ServerRailProps {
-  activeTab: 'kanban' | 'analytics';
-  onTabChange: (tab: 'kanban' | 'analytics') => void;
+  activeTab: 'kanban' | 'analytics' | 'manual';
+  onTabChange: (tab: 'kanban' | 'analytics' | 'manual') => void;
   currentTheme: ThemeMode;
   onThemeChange: (theme: ThemeMode) => void;
   isSyncing: boolean;
   onTriggerSteamSync: () => void;
-  onOpenSteamSearch: () => void;
+  onOpenSteamSearch?: () => void;
   onOpenSteamConnect: () => void;
   onOpenPacingModal: () => void;
-  onOpenGamingWrapped: () => void;
+  onOpenGamingWrapped?: () => void;
   hasSteamConnected: boolean;
   isPlayingLive: boolean;
 }
@@ -36,7 +31,8 @@ interface RailItemProps {
   tooltip: string;
   badge?: string | number | null;
   badgeColor?: string;
-  onClick: () => void;
+  onClick?: () => void;
+  href?: string;
   children: React.ReactNode;
   alertDot?: boolean;
 }
@@ -47,10 +43,38 @@ function RailItem({
   badge,
   badgeColor = 'bg-[var(--gp-brand)]',
   onClick,
+  href,
   children,
   alertDot = false,
 }: RailItemProps) {
   const [hovered, setHovered] = useState(false);
+
+  const innerContent = (
+    <>
+      {children}
+
+      {/* Live / Status Indicator Dot */}
+      {alertDot && !isActive && (
+        <span className="absolute top-1 right-1 flex h-3 w-3 pointer-events-none">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[var(--gp-rail)]" />
+        </span>
+      )}
+
+      {/* Counter Badge if needed */}
+      {badge !== undefined && badge !== null && (
+        <span className={`absolute -bottom-1 -right-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white border-2 border-[var(--gp-rail)] ${badgeColor}`}>
+          {badge}
+        </span>
+      )}
+    </>
+  );
+
+  const itemClass = `relative w-12 h-12 flex items-center justify-center transition-all duration-200 cursor-pointer select-none active:translate-y-[1px] ${
+    isActive
+      ? 'bg-[var(--gp-brand)] text-white rounded-[16px] shadow-md shadow-[var(--gp-brand)]/20'
+      : 'bg-[var(--gp-secondary)] text-[var(--gp-text-muted)] hover:text-white hover:bg-[var(--gp-brand)] rounded-[24px] hover:rounded-[16px]'
+  }`;
 
   return (
     <div 
@@ -70,33 +94,24 @@ function RailItem({
       />
 
       {/* Morphing Icon Container: circle (rounded-[24px]) -> squircle (rounded-[16px]) */}
-      <button
-        type="button"
-        onClick={onClick}
-        aria-label={tooltip}
-        className={`relative w-12 h-12 flex items-center justify-center transition-all duration-200 cursor-pointer select-none active:translate-y-[1px] ${
-          isActive
-            ? 'bg-[var(--gp-brand)] text-white rounded-[16px] shadow-md shadow-[var(--gp-brand)]/20'
-            : 'bg-[var(--gp-secondary)] text-[var(--gp-text-muted)] hover:text-white hover:bg-[var(--gp-brand)] rounded-[24px] hover:rounded-[16px]'
-        }`}
-      >
-        {children}
-
-        {/* Live / Status Indicator Dot */}
-        {alertDot && !isActive && (
-          <span className="absolute top-1 right-1 flex h-3 w-3 pointer-events-none">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[var(--gp-rail)]" />
-          </span>
-        )}
-
-        {/* Counter Badge if needed */}
-        {badge !== undefined && badge !== null && (
-          <span className={`absolute -bottom-1 -right-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white border-2 border-[var(--gp-rail)] ${badgeColor}`}>
-            {badge}
-          </span>
-        )}
-      </button>
+      {href ? (
+        <Link
+          href={href}
+          aria-label={tooltip}
+          className={itemClass}
+        >
+          {innerContent}
+        </Link>
+      ) : (
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={tooltip}
+          className={itemClass}
+        >
+          {innerContent}
+        </button>
+      )}
 
       {/* Floating Tooltip */}
       <div
@@ -167,32 +182,21 @@ export function ServerRail({
           <BarChart3 className="w-5 h-5" />
         </RailItem>
 
-        {/* Gaming Wrapped Modal */}
-        <RailItem
-          tooltip="Gaming Wrapped 2026"
-          isActive={false}
-          onClick={onOpenGamingWrapped}
-        >
-          <Gift className="w-5 h-5 text-pink-400 group-hover:text-white" />
-        </RailItem>
-
-
-
-
-        {/* Add Game Button */}
-        <RailItem
-          tooltip="เพิ่มเกมเข้า Backlog"
-          isActive={false}
-          onClick={onOpenSteamSearch}
-        >
-          <Plus className="w-5 h-5 text-emerald-400 group-hover:text-white" />
-        </RailItem>
       </div>
 
       {/* Bottom Group: Settings & Profile Actions */}
       <div className="flex flex-col items-center w-full gap-1">
         {/* Rail Divider */}
         <div className="w-8 h-[2px] bg-[var(--gp-divider)] rounded-full my-1.5" />
+
+        {/* Manual & Docs Button */}
+        <RailItem
+          tooltip="คู่มือการใช้งาน & มีอะไรใหม่ (Manual)"
+          isActive={activeTab === 'manual'}
+          onClick={() => onTabChange('manual')}
+        >
+          <BookOpen className="w-5 h-5 text-sky-400 group-hover:text-white transition-colors" />
+        </RailItem>
 
         {/* Pacing Settings Button */}
         <div id="tour-pacing">

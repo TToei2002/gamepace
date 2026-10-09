@@ -4,6 +4,27 @@ import { fetchSteamOwnedGames } from '@/lib/steam';
 
 export const dynamic = 'force-dynamic';
 
+// Thailand Timezone Offset: UTC+7
+const THAI_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+function getTargetEodThaiDate(runDate: Date = new Date()): Date {
+  const thaiNow = new Date(runDate.getTime() + THAI_OFFSET_MS);
+  const thaiHours = thaiNow.getUTCHours();
+
+  // If running in early morning (00:00 - 04:59 Thai time), this cron is finalizing yesterday
+  const targetDate = new Date(thaiNow);
+  if (thaiHours < 5) {
+    targetDate.setUTCDate(targetDate.getUTCDate() - 1);
+  }
+
+  const targetYear = targetDate.getUTCFullYear();
+  const targetMonth = targetDate.getUTCMonth();
+  const targetDay = targetDate.getUTCDate();
+
+  // 23:59:59.999 in Thailand (UTC+7) corresponds to 16:59:59.999 in UTC
+  return new Date(Date.UTC(targetYear, targetMonth, targetDay, 16, 59, 59, 999));
+}
+
 export async function GET(req: Request) {
   try {
     // 1. Authorization check for Vercel Cron or external webhook
@@ -17,6 +38,9 @@ export async function GET(req: Request) {
     if (!apiKey) {
       return NextResponse.json({ error: 'STEAM_API_KEY is not configured in environment' }, { status: 500 });
     }
+
+    // Target EOD timestamp for accurate daily snapshot lock
+    const targetEod = getTargetEodThaiDate();
 
     // 2. Find all active users with a Steam ID
     const users = await prisma.user.findMany({
@@ -32,6 +56,7 @@ export async function GET(req: Request) {
       totalUsers: users.length,
       syncedUsers: 0,
       updatedGames: 0,
+      targetEod: targetEod.toISOString(),
       timestamp: new Date().toISOString(),
     };
 
@@ -58,12 +83,13 @@ export async function GET(req: Request) {
             data: { currentPlayedMinutes: liveGame.playedMinutes },
           });
 
-          // Use the exact time game was last closed if available, otherwise current time
-          let actualPlayedAt = new Date();
+          // Smart Midnight Timestamp:
+          // Use exact closed time if before target EOD; clamp to target EOD (23:59:59) if later or currently in-game
+          let actualPlayedAt = targetEod;
           if (liveGame.rtimeLastPlayed && liveGame.rtimeLastPlayed > 0) {
             const steamDate = new Date(liveGame.rtimeLastPlayed * 1000);
             if (!isNaN(steamDate.getTime())) {
-              actualPlayedAt = steamDate;
+              actualPlayedAt = steamDate <= targetEod ? steamDate : targetEod;
             }
           }
 

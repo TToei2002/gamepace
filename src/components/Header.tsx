@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { 
   Gamepad2, 
   RefreshCw, 
@@ -11,8 +10,7 @@ import {
   PanelRight, 
   Search,
   Hash,
-  Sparkles,
-  BookOpen
+  Sparkles
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { ThemeMode } from '@/lib/theme';
@@ -31,12 +29,12 @@ interface HeaderProps {
     appId: number | null;
   } | null;
   isSyncing: boolean;
-  activeTab: 'kanban' | 'analytics';
+  activeTab: 'kanban' | 'analytics' | 'manual';
   currentTheme: ThemeMode;
   isSidebarOpen?: boolean;
   onToggleSidebar?: () => void;
   onThemeChange: (theme: ThemeMode) => void;
-  onTabChange: (tab: 'kanban' | 'analytics') => void;
+  onTabChange: (tab: 'kanban' | 'analytics' | 'manual') => void;
   onTriggerSteamSync: () => void;
   onOpenSteamSearch: () => void;
   onOpenSteamConnect: () => void;
@@ -69,7 +67,11 @@ export function Header({
         <div className="flex items-center gap-2 text-[var(--gp-text-muted)]">
           <Hash className="w-5 h-5 text-[var(--gp-text-muted)]" />
           <h1 className="text-sm font-bold tracking-tight text-[var(--gp-text-strong)] truncate">
-            {activeTab === 'kanban' ? 'กระดาน-kanban' : 'dashboard-สถิติ'}
+            {activeTab === 'kanban' 
+              ? 'กระดาน-kanban' 
+              : activeTab === 'analytics' 
+              ? 'dashboard-สถิติ' 
+              : 'คู่มือ-การใช้งาน'}
           </h1>
         </div>
 
@@ -78,7 +80,9 @@ export function Header({
         <p className="hidden md:block text-xs text-[var(--gp-text-muted)] truncate">
           {activeTab === 'kanban' 
             ? 'จัดการคลังเกมและสถานะการเล่นแบบ Kanban' 
-            : 'วิเคราะห์อัตราการเล่นและงบ Pacing'}
+            : activeTab === 'analytics'
+            ? 'วิเคราะห์อัตราการเล่นและงบ Pacing'
+            : 'คู่มือแนะนำการใช้งาน GamePace และบันทึกการอัปเดต'}
         </p>
       </div>
 
@@ -127,17 +131,6 @@ export function Header({
             }`}
           />
         </button>
-
-        {/* Docs & Changelog Link */}
-        <Link
-          href="/changelog"
-          aria-label="คู่มือการใช้งาน & มีอะไรใหม่ (Manual & Changelog)"
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-[var(--gp-secondary)] hover:bg-[var(--gp-hover)] text-[var(--gp-text-strong)] border border-[var(--gp-divider)] transition-all"
-          title="ดูคู่มือการใช้งานและบันทึกการอัปเดต"
-        >
-          <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-          <span>คู่มือ & มีอะไรใหม่</span>
-        </Link>
 
         {/* Theme Toggle */}
         <div className="hidden sm:block">

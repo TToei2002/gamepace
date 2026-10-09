@@ -92,23 +92,54 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     const imageMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
     if (imageMatch) {
       flushList();
-      const altText = imageMatch[1];
+      let altText = imageMatch[1];
       const imageUrl = imageMatch[2];
 
+      // Support custom width syntax: ![alt|300px](url), ![alt|sm](url), ![alt|300](url)
+      let customMaxWidth = 'max-w-2xl';
+      let customWidthStyle: React.CSSProperties = {};
+
+      if (altText.includes('|')) {
+        const parts = altText.split('|');
+        const cleanAlt = parts[0].trim();
+        const sizeSpec = parts[1].trim().toLowerCase();
+        altText = cleanAlt;
+
+        if (sizeSpec === 'xs') {
+          customMaxWidth = 'max-w-xs';
+        } else if (sizeSpec === 'sm' || sizeSpec === 'small') {
+          customMaxWidth = 'max-w-sm';
+        } else if (sizeSpec === 'md' || sizeSpec === 'medium') {
+          customMaxWidth = 'max-w-md';
+        } else if (sizeSpec === 'lg' || sizeSpec === 'large') {
+          customMaxWidth = 'max-w-2xl';
+        } else if (sizeSpec.endsWith('px') || sizeSpec.endsWith('%') || sizeSpec.endsWith('rem')) {
+          customWidthStyle = { maxWidth: sizeSpec };
+          customMaxWidth = '';
+        } else if (!isNaN(Number(sizeSpec))) {
+          customWidthStyle = { maxWidth: `${sizeSpec}px` };
+          customMaxWidth = '';
+        }
+      }
+
       elements.push(
-        <div key={`img-${elementKey++}`} className="pt-3 max-w-2xl my-2">
-          <div className="rounded-xl overflow-hidden border border-[var(--gp-divider)] bg-[var(--gp-rail)] shadow-md">
+        <div 
+          key={`img-${elementKey++}`} 
+          className={`pt-3 ${customMaxWidth} my-3 w-fit max-w-full`}
+          style={customWidthStyle}
+        >
+          <div className="rounded-xl overflow-hidden border border-[var(--gp-divider)] bg-[var(--gp-rail)] shadow-md w-fit max-w-full">
             <img
               src={imageUrl}
               alt={altText || 'Screenshot'}
-              className="w-full h-auto object-cover hover:scale-[1.01] transition-transform duration-300"
+              className="w-auto max-w-full max-h-[580px] h-auto object-contain hover:scale-[1.01] transition-transform duration-300 block"
             />
             {altText && (
-              <div className="px-4 py-2.5 bg-[var(--gp-floating)] border-t border-[var(--gp-divider)] flex items-center justify-between text-xs text-[var(--gp-text-muted)]">
-                <span className="font-medium text-[11px] sm:text-xs">
+              <div className="px-4 py-2.5 bg-[var(--gp-floating)] border-t border-[var(--gp-divider)] flex items-center justify-between text-xs text-[var(--gp-text-muted)] gap-2">
+                <span className="font-medium text-[11px] sm:text-xs truncate">
                   {altText}
                 </span>
-                <span className="text-[10px] font-mono opacity-75">Preview</span>
+                <span className="text-[10px] font-mono opacity-75 shrink-0">Preview</span>
               </div>
             )}
           </div>

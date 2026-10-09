@@ -153,7 +153,7 @@ export function ChangelogShell({ manualContent, changelogContent }: ChangelogShe
 
         {/* Footer Navigation */}
         <div className="pt-8 border-t border-[var(--gp-divider)] mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--gp-text-muted)]">
-          <p>© 2026 GamePace.</p>
+          <p>© 2026 GamePace. v1.2.0</p>
           <div className="flex items-center gap-3">
             <Link
               href="/"

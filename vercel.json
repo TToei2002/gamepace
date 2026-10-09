@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/steam-sync",
-      "schedule": "50 16 * * *"
+      "schedule": "59 16 * * *"
     }
   ]
 }
